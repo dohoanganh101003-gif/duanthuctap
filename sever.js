@@ -11,9 +11,7 @@ const pool = new Pool({
   password: "123456",
   port: 5432,
 });
-
-// Middleware
-app.use(express.json()); // Đảm bảo middleware này được gọi trước các route
+app.use(express.json()); 
 
 // API kiểm tra kết nối CSDL
 app.get("/health", async (req, res) => {
