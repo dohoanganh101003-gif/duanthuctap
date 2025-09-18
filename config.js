@@ -18,6 +18,6 @@ module.exports = {
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Đặt secure: true nếu dùng HTTPS
+    cookie: { secure: false },
   },
 };
