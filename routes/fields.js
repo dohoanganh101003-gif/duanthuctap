@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const FieldController = require("../controllers/FieldController");
 const Service = require("../models/Service");
+const Field = require("../models/Field");
 const jwt = require("jsonwebtoken");
-const config = require("../config"); // Import config
+const config = require("../config");
 
 const authenticateToken = (req, res, next) => {
   const token = req.session.token;
@@ -11,6 +12,8 @@ const authenticateToken = (req, res, next) => {
   jwt.verify(token, config.jwt.secret, (err, user) => {
     if (err) return res.redirect("/dangnhap");
     req.user = user;
+    req.session.user_id = user.user_id; // Lưu user_id vào session
+    req.session.role = user.role; // Lưu role vào session
     next();
   });
 };
@@ -22,39 +25,47 @@ const checkAdmin = (req, res, next) => {
   next();
 };
 
-const fieldController = new FieldController(express().locals.pool);
-const serviceModel = new Service(express().locals.pool);
+// Sử dụng pool từ req.app.locals.pool trong mỗi route
+router.get("/", (req, res) => {
+  const pool = req.app.locals.pool;
+  const fieldController = new FieldController(pool);
+  fieldController.getHomePage(req, res);
+});
 
-router.get("/", fieldController.getHomePage.bind(fieldController));
-router.get(
-  "/api/sanbong",
-  fieldController.getFieldsGeoJSON.bind(fieldController)
-);
-router.get(
-  "/sanbong",
-  fieldController.getFieldsWithSubFields.bind(fieldController)
-);
-router.post(
-  "/api/sanbong",
-  authenticateToken,
-  checkAdmin,
-  fieldController.createField.bind(fieldController)
-);
-router.put(
-  "/api/sanbong/:id",
-  authenticateToken,
-  checkAdmin,
-  fieldController.updateField.bind(fieldController)
-);
-router.delete(
-  "/api/sanbong/:id",
-  authenticateToken,
-  checkAdmin,
-  fieldController.deleteField.bind(fieldController)
-);
+router.get("/api/sanbong", (req, res) => {
+  const pool = req.app.locals.pool;
+  const fieldController = new FieldController(pool);
+  fieldController.getFieldsGeoJSON(req, res);
+});
+
+router.get("/sanbong", (req, res) => {
+  const pool = req.app.locals.pool;
+  const fieldController = new FieldController(pool);
+  fieldController.getFieldsWithSubFields(req, res);
+});
+
+router.post("/api/sanbong", authenticateToken, checkAdmin, (req, res) => {
+  const pool = req.app.locals.pool;
+  const fieldController = new FieldController(pool);
+  fieldController.createField(req, res);
+});
+
+router.put("/api/sanbong/:id", authenticateToken, checkAdmin, (req, res) => {
+  const pool = req.app.locals.pool;
+  const fieldController = new FieldController(pool);
+  fieldController.updateField(req, res);
+});
+
+router.delete("/api/sanbong/:id", authenticateToken, checkAdmin, (req, res) => {
+  const pool = req.app.locals.pool;
+  const fieldController = new FieldController(pool);
+  fieldController.deleteField(req, res);
+});
 
 router.get("/dichvu/:sanbong_id", async (req, res) => {
   try {
+    const pool = req.app.locals.pool;
+    const serviceModel = new Service(pool);
     const services = await serviceModel.getServicesByFieldId(
       req.params.sanbong_id
     );
@@ -67,11 +78,13 @@ router.get("/dichvu/:sanbong_id", async (req, res) => {
 
 router.post("/api/dichvu", authenticateToken, checkAdmin, async (req, res) => {
   try {
+    const pool = req.app.locals.pool;
+    const serviceModel = new Service(pool);
     const { name, description, price, field_id } = req.body;
     if (price < 0) {
       return res.status(400).json({ error: "Giá không được nhỏ hơn 0" });
     }
-    const field = await new Field(express().locals.pool).getFieldById(field_id);
+    const field = await new Field(pool).getFieldById(field_id);
     if (!field) {
       return res
         .status(400)
@@ -96,14 +109,14 @@ router.put(
   checkAdmin,
   async (req, res) => {
     try {
+      const pool = req.app.locals.pool;
+      const serviceModel = new Service(pool);
       const { id } = req.params;
       const { name, description, price, field_id } = req.body;
       if (price < 0) {
         return res.status(400).json({ error: "Giá không được nhỏ hơn 0" });
       }
-      const field = await new Field(express().locals.pool).getFieldById(
-        field_id
-      );
+      const field = await new Field(pool).getFieldById(field_id);
       if (!field) {
         return res
           .status(400)
@@ -132,6 +145,8 @@ router.delete(
   checkAdmin,
   async (req, res) => {
     try {
+      const pool = req.app.locals.pool;
+      const serviceModel = new Service(pool);
       const { id } = req.params;
       const service = await serviceModel.deleteService(id);
       if (!service) {
