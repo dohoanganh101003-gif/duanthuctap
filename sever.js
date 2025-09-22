@@ -1,53 +1,63 @@
 const express = require("express");
-const { Pool } = require("pg");
-const cors = require("cors");
 const session = require("express-session");
 const path = require("path");
 const config = require("./config");
-const fieldRoutes = require("./routes/fields");
-const bookingRoutes = require("./routes/bookings");
-const authRoutes = require("./routes/auth");
+const { Pool } = require("pg");
+const AuthController = require("./controllers/AuthController");
 
 const app = express();
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "static")));
+app.use(
+  session({
+    secret: config.session.secret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 3600000 }, // 1 hour
+  })
+);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "templates"));
-app.use(session(config.session));
 
-// Kết nối database
-const pool = new Pool(config.database);
-pool.connect((err) => {
-  if (err) {
-    console.error("Lỗi kết nối cơ sở dữ liệu:", err.stack);
-    process.exit(1);
-  }
-  console.log("Kết nối cơ sở dữ liệu thành công");
-  app.locals.pool = pool;
+// Database
+const pool = new Pool({
+  user: "postgres",
+  host: "localhost",
+  database: "quanlysanbong",
+  password: "123456", // Thay bằng mật khẩu đúng của user postgres
+  port: 5432,
 });
 
-// Định tuyến
-app.use("/", fieldRoutes);
-app.use("/", bookingRoutes);
-app.use("/", authRoutes);
+// Test database connection
+pool.connect((err) => {
+  if (err) {
+    console.error("Database connection error:", err.stack);
+  } else {
+    console.log("Connected to database quanlysanbong");
+  }
+});
+
+// Routes
+const authController = new AuthController(pool);
+app.get("/dangky", authController.getRegisterPage.bind(authController));
+app.post("/dangky", authController.register.bind(authController));
+app.get("/dangnhap", authController.getLoginPage.bind(authController));
+app.post("/dangnhap", authController.login.bind(authController));
 
 // Health check
 app.get("/health", async (req, res) => {
   try {
-    await app.locals.pool.query("SELECT 1");
-    res.json({ status: "Kết nối cơ sở dữ liệu thành công" });
+    await pool.query("SELECT 1");
+    res.status(200).json({ status: "Database connected" });
   } catch (err) {
-    console.error(err.stack);
     res
       .status(500)
-      .json({ error: "Lỗi kết nối cơ sở dữ liệu: " + err.message });
+      .json({ error: "Database connection failed: " + err.message });
   }
 });
 
-app.listen(config.server.port, () => {
-  console.log(`Server chạy tại http://localhost:${config.server.port}`);
+app.listen(3003, () => {
+  console.log("Server chạy tại http://localhost:3003");
 });
