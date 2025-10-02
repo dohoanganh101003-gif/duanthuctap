@@ -34,6 +34,18 @@ class Service {
     );
     return result.rows[0];
   }
+  async getServicesByOwnerId(owner_id) {
+    const result = await this.pool.query(
+      `
+    SELECT s.*, f.name as field_name, f.id as field_id
+    FROM public.service s
+    JOIN public.fields f ON s.field_id = f.id
+    WHERE f.owner_id = $1
+  `,
+      [owner_id]
+    );
+    return result.rows;
+  }
 }
 
 module.exports = Service;

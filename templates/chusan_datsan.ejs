@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý đặt sân</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/trangchu.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <header class="main-header bg-primary text-white p-3">
+        <div class="header-content">
+            <h1 class="site-title">Quản Lý Sân Bóng</h1>
+            <nav class="navbar navbar-expand-lg navbar-light bg-light mt-3">
+                <div class="container-fluid">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <% if (session.role==='admin' ) { %>
+                            <!-- Menu riêng cho admin -->
+                            <a class="nav-item nav-link active" href="/them_sanbong">Thêm sân bóng</a>
+                            <a class="nav-item nav-link active" href="/them_dichvu">Thêm dịch vụ</a>
+                            <a class="nav-item nav-link active" href="/quanly_datsan">Quản lý đặt sân</a>
+                            <% } else if (session.role==='owner' ) { %>
+                                <!-- Menu riêng cho chủ sân -->
+                                <a class="nav-item nav-link active" href="/owner/chusan_datsan">Quản lý đặt sân</a>
+                                <a class="nav-item nav-link active" href="/owner/chusan_dichvu">Quản lý dịch vụ</a>
+                                <a class="nav-item nav-link active" href="/owner/chusan_lichsu">Lịch sử đặt sân</a>
+                                <% } %>
+                    </ul>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <% if (session.user_id) { %>
+                            <li class="nav-item"><a class="nav-link" href="/dangxuat">Đăng xuất</a></li>
+                            <% } else { %>
+                                <li class="nav-item"><a class="nav-link" href="/dangnhap">Đăng nhập</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/dangky">Đăng ký</a></li>
+                                <% } %>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mt-4">
+        <h2>Quản lý đặt sân</h2>
+        <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Người đặt</th>
+                    <th>Sân con</th>
+                    <th>Thời gian</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% bookings.forEach(b=> { %>
+                    <tr>
+                        <td>
+                            <%= b.user_name %>
+                        </td> <!-- ✅ đổi từ b.username thành b.user_name -->
+                        <td>
+                            <%= b.sub_field_name %> - <%= b.field_name %>
+                        </td>
+                        <td>
+                            <%= new Date(b.start_time).toLocaleString("vi-VN", { hour12: false }) %>
+                                -
+                                <%= new Date(b.end_time).toLocaleString("vi-VN", { hour12: false }) %>
+                        </td>
+                        <td>
+                            <%= b.total_price %> VNĐ
+                        </td>
+                        <td>
+                            <%= b.status %>
+                        </td>
+                        <td>
+                            <% if (b.status==='pending' ) { %>
+                                <form action="/api/bookings/<%= b.id %>/status" method="POST" style="display:inline;">
+                                    <input type="hidden" name="_method" value="PUT"> <!-- ✅ thêm override -->
+                                    <input type="hidden" name="status" value="confirmed">
+                                    <button type="submit" class="btn btn-success btn-sm">Chấp thuận</button>
+                                </form>
+                                <form action="/api/bookings/<%= b.id %>/status" method="POST" style="display:inline;">
+                                    <input type="hidden" name="_method" value="PUT"> <!-- ✅ thêm override -->
+                                    <input type="hidden" name="status" value="cancelled">
+                                    <button type="submit" class="btn btn-danger btn-sm">Từ chối</button>
+                                </form>
+                                <% } %>
+                        </td>
+                    </tr>
+                    <% }) %>
+            </tbody>
+        </table>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sửa sân bóng</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+    <link rel="stylesheet" href="/static/style.css">
+
+</head>
+
+<body>
+    <header class="main-header bg-primary text-white p-3">
+        <div class="header-content">
+            <h1 class="site-title">Quản Lý Sân Bóng</h1>
+            <nav class="navbar navbar-expand-lg navbar-light bg-light mt-3">
+                <div class="container-fluid">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <a class="nav-link active" href="/">Trang chủ</a>
+                        <a class="nav-item nav-link active" href="/lichsu_datsan">Lịch sử đặt sân</a>
+
+
+                        <% if (session.role==='admin' ) { %>
+                            <a class="nav-item nav-link active" href="/danhsach-dichvu">Danh sách dịch vụ</a>
+                            <a class="nav-item nav-link active" href="/them_sanbong">Thêm sân bóng</a>
+                            <a class="nav-item nav-link active" href="/them_dichvu">Thêm dịch vụ</a>
+                            <a class="nav-item nav-link active" href="/quanly_datsan">Quản lý đặt sân</a>
+                            <% } %>
+                    </ul>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <% if (session.user_id) { %>
+                            <li class="nav-item"><a class="nav-link" href="/dangxuat">Đăng xuất</a></li>
+                            <% } else { %>
+                                <li class="nav-item"><a class="nav-link" href="/dangnhap">Đăng nhập</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/dangky">Đăng ký</a></li>
+                                <% } %>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <div class="container mt-5">
+        <h2>Sửa Sân Bóng</h2>
+        <form id="editSanbongForm" class="needs-validation" novalidate>
+            <input type="hidden" id="sanbong_id" name="sanbong_id" value="<%= field.id %>">
+            <div class="mb-3">
+                <label for="name" class="form-label">Tên sân bóng</label>
+                <input type="text" class="form-control" id="name" name="name" value="<%= field.name %>" required>
+                <div class="invalid-feedback">Vui lòng nhập tên sân bóng.</div>
+            </div>
+            <div class="mb-3">
+                <label for="address" class="form-label">Địa chỉ</label>
+                <input type="text" class="form-control" id="address" name="address" value="<%= field.address %>"
+                    required>
+                <div class="invalid-feedback">Vui lòng nhập địa chỉ.</div>
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label">Điện thoại</label>
+                <input type="text" class="form-control" id="phone" name="phone" value="<%= field.phone %>" required>
+                <div class="invalid-feedback">Vui lòng nhập số điện thoại.</div>
+            </div>
+            <div class="mb-3">
+                <label for="open_time" class="form-label">Giờ mở cửa</label>
+                <input type="time" class="form-control" id="open_time" name="open_time" value="<%= field.open_time %>"
+                    required>
+                <div class="invalid-feedback">Vui lòng nhập giờ mở cửa.</div>
+            </div>
+            <div class="mb-3">
+                <label for="close_time" class="form-label">Giờ đóng cửa</label>
+                <input type="time" class="form-control" id="close_time" name="close_time"
+                    value="<%= field.close_time %>" required>
+                <div class="invalid-feedback">Vui lòng nhập giờ đóng cửa.</div>
+            </div>
+            <div class="mb-3">
+                <label for="price_per_hour" class="form-label">Giá mỗi giờ (VNĐ)</label>
+                <input type="number" step="0.01" class="form-control" id="price_per_hour" name="price_per_hour"
+                    value="<%= field.price_per_hour %>" required>
+                <div class="invalid-feedback">Vui lòng nhập giá (không âm).</div>
+            </div>
+            <div class="mb-3">
+                <label for="surface_type" class="form-label">Loại mặt sân</label>
+                <select class="form-control" id="surface_type" name="surface_type" required>
+                    <option value="">Chọn loại mặt sân</option>
+                    <option value="artificial" <%=field.surface_type==='artificial' ? 'selected' : '' %>>Cỏ nhân tạo
+                    </option>
+                    <option value="grass" <%=field.surface_type==='grass' ? 'selected' : '' %>>Cỏ tự nhiên</option>
+                    <option value="indoor" <%=field.surface_type==='indoor' ? 'selected' : '' %>>Sân trong nhà</option>
+                </select>
+                <div class="invalid-feedback">Vui lòng chọn loại mặt sân.</div>
+            </div>
+            <div class="mb-3">
+                <label for="images" class="form-label">Hình ảnh</label>
+                <input type="text" class="form-control" id="images" name="images"
+                    value="<%= field.images ? field.images.join(',') : '' %>" placeholder="img1.jpg,img2.jpg">
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Mô tả</label>
+                <textarea class="form-control" id="description" name="description"
+                    rows="4"><%= field.description || '' %></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="latitude" class="form-label">Vĩ độ</label>
+                <input type="number" step="any" class="form-control" id="latitude" name="latitude"
+                    value="<%= field.latitude %>" required>
+                <div class="invalid-feedback">Vui lòng nhập vĩ độ.</div>
+            </div>
+            <div class="mb-3">
+                <label for="longitude" class="form-label">Kinh độ</label>
+                <input type="number" step="any" class="form-control" id="longitude" name="longitude"
+                    value="<%= field.longitude %>" required>
+                <div class="invalid-feedback">Vui lòng nhập kinh độ.</div>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="manualCoords" onchange="toggleCoordsInput()">
+                <label class="form-check-label" for="manualCoords">Nhập tọa độ thủ công</label>
+            </div>
+            <div id="ban_do" style="height: 400px;"></div>
+            <button type="submit" class="btn btn-primary mt-3">Cập nhật sân bóng</button>
+        </form>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="/scripts/sanbong.js" defer></script>
+</body>
+
+</html>

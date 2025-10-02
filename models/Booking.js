@@ -51,6 +51,20 @@ class Booking {
     );
     return result.rows[0];
   }
+  async getBookingsByOwnerId(owner_id) {
+    const result = await this.pool.query(
+      `
+    SELECT b.*, sf.name AS sub_field_name, f.name AS field_name, f.owner_id
+    FROM public.booking b
+    JOIN public.sub_fields sf ON b.sub_field_id = sf.id
+    JOIN public.fields f ON sf.field_id = f.id
+    WHERE f.owner_id = $1
+    ORDER BY b.start_time DESC
+  `,
+      [owner_id]
+    );
+    return result.rows;
+  }
 }
 
 module.exports = Booking;

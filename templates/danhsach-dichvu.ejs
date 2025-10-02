@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sân Bóng</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+    <link rel="stylesheet" href="/trangchu.css">
+
+</head>
+
+<body>
+    <header class="main-header bg-primary text-white p-3">
+        <div class="header-content">
+            <h1 class="site-title">Quản Lý Sân Bóng</h1>
+            <nav class="navbar navbar-expand-lg navbar-light bg-light mt-3">
+                <div class="container-fluid">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <a class="nav-link active" href="/">Trang chủ</a>
+                        <a class="nav-item nav-link active" href="/lichsu_datsan">Lịch sử đặt sân</a>
+
+
+                        <% if (session.role==='admin' ) { %>
+                            <a class="nav-item nav-link active" href="/danhsach-dichvu">Danh sách dịch vụ</a>
+                            <a class="nav-item nav-link active" href="/them_sanbong">Thêm sân bóng</a>
+                            <a class="nav-item nav-link active" href="/them_dichvu">Thêm dịch vụ</a>
+                            <a class="nav-item nav-link active" href="/quanly_datsan">Quản lý đặt sân</a>
+                            <% } %>
+                    </ul>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <% if (session.user_id) { %>
+                            <li class="nav-item"><a class="nav-link" href="/dangxuat">Đăng xuất</a></li>
+                            <% } else { %>
+                                <li class="nav-item"><a class="nav-link" href="/dangnhap">Đăng nhập</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/dangky">Đăng ký</a></li>
+                                <% } %>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mt-4">
+        <h2>Danh sách dịch vụ</h2>
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Tên dịch vụ</th>
+                    <th>Mô tả</th>
+                    <th>Giá (VNĐ)</th>
+                    <th>Thuộc sân bóng</th>
+                    <% if (session && session.role==='admin' ) { %>
+                        <th>Hành động</th>
+                        <% } %>
+                </tr>
+            </thead>
+            <tbody>
+                <% services.forEach(service=> { %>
+                    <tr>
+                        <td>
+                            <%= service.name %>
+                        </td>
+                        <td>
+                            <%= service.description || 'Không có mô tả' %>
+                        </td>
+                        <td>
+                            <%= Number(service.price).toLocaleString("vi-VN") %>
+                        </td>
+                        <td>
+                            <%= service.field_name %>
+                        </td>
+                        <% if (session && session.role==='admin' ) { %>
+                            <td>
+                                <a href="/sua_dichvu/<%= service.id %>" class="btn btn-warning btn-sm">Sửa</a>
+                                <button onclick="deleteService(<%= service.id %>)"
+                                    class="btn btn-danger btn-sm">Xóa</button>
+                            </td>
+                            <% } %>
+                    </tr>
+                    <% }) %>
+            </tbody>
+        </table>
+    </main>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script>
+        function deleteService(id) {
+            if (confirm("Bạn có chắc muốn xóa dịch vụ này không?")) {
+                fetch(`/api/dichvu/${id}`, { method: "DELETE" })
+                    .then(res => {
+                        if (res.ok) location.reload();
+                        else alert("Xóa dịch vụ thất bại");
+                    });
+            }
+        }
+    </script>
+    <script src="/scripts/dichvu.js"></script>
+
+</body>
+
+</html>

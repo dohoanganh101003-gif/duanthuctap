@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sân Bóng</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+    <link rel="stylesheet" href="/trangchu.css">
+
+</head>
+
+<body>
+    <header class="main-header bg-primary text-white p-3">
+        <div class="header-content">
+            <h1 class="site-title">Quản Lý Sân Bóng</h1>
+            <nav class="navbar navbar-expand-lg navbar-light bg-light mt-3">
+                <div class="container-fluid">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <a class="nav-link active" href="/">Trang chủ</a>
+                        <a class="nav-item nav-link active" href="/lichsu_datsan">Lịch sử đặt sân</a>
+
+
+                        <% if (session.role==='admin' ) { %>
+                            <a class="nav-item nav-link active" href="/danhsach-dichvu">Danh sách dịch vụ</a>
+                            <a class="nav-item nav-link active" href="/them_sanbong">Thêm sân bóng</a>
+                            <a class="nav-item nav-link active" href="/them_dichvu">Thêm dịch vụ</a>
+                            <a class="nav-item nav-link active" href="/quanly_datsan">Quản lý đặt sân</a>
+                            <% } %>
+                    </ul>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <% if (session.user_id) { %>
+                            <li class="nav-item"><a class="nav-link" href="/dangxuat">Đăng xuất</a></li>
+                            <% } else { %>
+                                <li class="nav-item"><a class="nav-link" href="/dangnhap">Đăng nhập</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/dangky">Đăng ký</a></li>
+                                <% } %>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+
+    <div class="page-container">
+        <h2>Tìm kiếm sân bóng</h2>
+        <div class="search-container">
+            <input type="text" id="search-input" class="form-control d-inline-block w-auto"
+                placeholder="Nhập tên sân bóng...">
+            <button id="search-button" class="btn btn-primary search-button">Tìm kiếm</button>
+            <button id="nearby-button" class="btn btn-primary nearby-button">Tìm vị trí gần nhất</button>
+        </div>
+
+        <div id="search-history" class="search-history"></div>
+    </div>
+    <div id="map"></div>
+
+
+    <h2>Danh sách sân bóng</h2>
+    <div class="table-container">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Tên sân</th>
+                    <th>Địa chỉ</th>
+                    <th>Điện thoại</th>
+                    <th>Giờ mở cửa</th>
+                    <th>Giờ đóng cửa</th>
+                    <th>Loại sân</th>
+                    <th>Giá tiền</th>
+                    <th>Sân con</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% fields.forEach(field=> {
+                    const subs = (field.subFields && field.subFields.length > 0)
+                    ? field.subFields
+                    : [null];
+                    %>
+                    <% subs.forEach(sub=> { %>
+                        <tr>
+                            <td>
+                                <%= field.name %>
+                            </td>
+                            <td>
+                                <%= field.address %>
+                            </td>
+                            <td>
+                                <%= field.phone %>
+                            </td>
+                            <td>
+                                <%= field.open_time %>
+                            </td>
+                            <td>
+                                <%= field.close_time %>
+                            </td>
+                            <td>
+                                <%= field.surface_type || "Chưa có dữ liệu" %>
+                            </td>
+                            <td>
+                                <%= field.price_per_hour || "Chưa có dữ liệu" %>
+                            </td>
+                            <td>
+                                <% if (sub) { %>
+                                    <span>
+                                        <%= sub.name %> (<%= sub.size %>)
+                                    </span>
+                                    <% } else { %>
+                                        <span>Chưa có sân con</span>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <a href="/xem_dichvu/<%= field.id %>" class="btn btn-primary btn-sm">Xem dịch vụ</a>
+                                <a href="/dat-san?field_id=<%= field.id %>" class="btn btn-success btn-sm">Đặt sân</a>
+                                <% if (session.role==='admin' ) { %>
+                                    <a href="/sua_sanbong/<%= field.id %>" class="btn btn-warning btn-sm">Sửa</a>
+                                    <button class="btn btn-danger btn-sm"
+                                        onclick="window.deleteSanbong(<%= field.id %>)">Xóa</button>
+                                    <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                            <% }) %>
+            </tbody>
+        </table>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script>
+        window.currentRole = "<%= session.role %>";
+    </script>
+
+    <script src="/scripts/map.js" defer></script>
+</body>
+
+</html>

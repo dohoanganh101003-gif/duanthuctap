@@ -1,6 +1,17 @@
 const Field = require("../models/Field");
 const SubField = require("../models/SubField");
 
+function formatTime(time) {
+  if (!time) return "N/A";
+  const [hours, minutes] = time.split(":");
+  const h = parseInt(hours, 10);
+  const m = parseInt(minutes, 10);
+  if (isNaN(h) || isNaN(m)) return "N/A";
+  const period = h >= 12 ? "PM" : "AM";
+  const formattedHour = h % 12 || 12;
+  return `${formattedHour}:${m.toString().padStart(2, "0")} ${period}`;
+}
+
 class FieldController {
   constructor(pool) {
     this.fieldModel = new Field(pool);
@@ -9,17 +20,43 @@ class FieldController {
 
   async getHomePage(req, res) {
     try {
-      res.render("trangchu", { session: req.session || {} });
+      const { lat, lng } = req.query;
+      const fields = await this.fieldModel.getAllFields({
+        search: req.query.search || "",
+        lat: lat ? parseFloat(lat) : null,
+        lng: lng ? parseFloat(lng) : null,
+      });
+      const fieldsWithSubFields = await Promise.all(
+        fields.map(async (field) => {
+          const subFields = await this.subFieldModel.getSubFieldsByFieldId(
+            field.id
+          );
+          return {
+            ...field,
+            subFields,
+            open_time: formatTime(field.open_time),
+            close_time: formatTime(field.close_time),
+          };
+        })
+      );
+      res.render("trangchu", {
+        session: req.session || {},
+        fields: fieldsWithSubFields,
+      });
     } catch (err) {
-      console.error(err.stack);
-      res.status(500).send("Lỗi khi tải trang chủ");
+      console.error("Lỗi khi tải trang chủ:", err.stack);
+      res.status(500).send("Lỗi khi tải trang chủ: " + err.message);
     }
   }
 
   async getFieldsGeoJSON(req, res) {
     try {
       const { search, lat, lng } = req.query;
-      const fields = await this.fieldModel.getAllFields({ search, lat, lng });
+      const fields = await this.fieldModel.getAllFields({
+        search: search || "",
+        lat: lat ? parseFloat(lat) : null,
+        lng: lng ? parseFloat(lng) : null,
+      });
       const geoJSON = {
         type: "FeatureCollection",
         features: fields.map((field) => ({
@@ -45,13 +82,18 @@ class FieldController {
       res.json(geoJSON);
     } catch (err) {
       console.error("Lỗi khi lấy dữ liệu sân bóng:", err.stack);
-      res.status(500).json({ error: "Lỗi máy chủ nội bộ" });
+      res.status(500).json({ error: "Lỗi máy chủ nội bộ: " + err.message });
     }
   }
 
   async getFieldsWithSubFields(req, res) {
     try {
-      const fields = await this.fieldModel.getAllFields({});
+      const { search, lat, lng } = req.query;
+      const fields = await this.fieldModel.getAllFields({
+        search: search || "",
+        lat: lat ? parseFloat(lat) : null,
+        lng: lng ? parseFloat(lng) : null,
+      });
       const fieldsWithSubFields = await Promise.all(
         fields.map(async (field) => {
           const subFields = await this.subFieldModel.getSubFieldsByFieldId(
@@ -62,8 +104,8 @@ class FieldController {
       );
       res.json(fieldsWithSubFields);
     } catch (err) {
-      console.error(err.stack);
-      res.status(500).json({ error: "Lỗi cơ sở dữ liệu: " + err.message });
+      console.error("Lỗi khi lấy danh sách sân bóng với subfields:", err.stack);
+      res.status(500).json({ error: "Lỗi máy chủ nội bộ: " + err.message });
     }
   }
 
@@ -76,12 +118,26 @@ class FieldController {
       longitude,
       open_time,
       close_time,
-      price_per_hour,
-      surface_type,
       images,
       description,
+      price_per_hour,
+      surface_type,
     } = req.body;
     try {
+      if (
+        !name ||
+        !address ||
+        !phone ||
+        !open_time ||
+        !close_time ||
+        !latitude ||
+        !longitude ||
+        !price_per_hour
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Thiếu thông tin sân bóng bắt buộc!" });
+      }
       if (
         new Date(`1970-01-01T${close_time}Z`) <=
         new Date(`1970-01-01T${open_time}Z`)
@@ -90,7 +146,7 @@ class FieldController {
           .status(400)
           .json({ error: "Thời gian đóng cửa phải sau thời gian mở cửa" });
       }
-      if (price_per_hour < 0) {
+      if (parseFloat(price_per_hour) < 0) {
         return res
           .status(400)
           .json({ error: "Giá mỗi giờ không được nhỏ hơn 0" });
@@ -99,19 +155,19 @@ class FieldController {
         name,
         address,
         phone,
-        latitude,
-        longitude,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
         open_time,
         close_time,
-        price_per_hour,
-        surface_type,
-        images,
+        images: images ? JSON.parse(images) : [],
         description,
-        owner_id: req.session.user_id,
+        price_per_hour: parseFloat(price_per_hour),
+        surface_type,
+        owner_id: req.session.user_id || null,
       });
-      res.status(201).json(field);
+      res.status(201).json({ id: field.id });
     } catch (err) {
-      console.error("Lỗi khi thêm sân bóng:", err.stack);
+      console.error("Lỗi khi tạo sân bóng:", err.stack);
       res.status(500).json({ error: "Lỗi máy chủ nội bộ: " + err.message });
     }
   }
@@ -126,12 +182,26 @@ class FieldController {
       longitude,
       open_time,
       close_time,
-      price_per_hour,
-      surface_type,
       images,
       description,
+      price_per_hour,
+      surface_type,
     } = req.body;
     try {
+      if (
+        !name ||
+        !address ||
+        !phone ||
+        !open_time ||
+        !close_time ||
+        !latitude ||
+        !longitude ||
+        !price_per_hour
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Thiếu thông tin sân bóng bắt buộc!" });
+      }
       if (
         new Date(`1970-01-01T${close_time}Z`) <=
         new Date(`1970-01-01T${open_time}Z`)
@@ -140,7 +210,7 @@ class FieldController {
           .status(400)
           .json({ error: "Thời gian đóng cửa phải sau thời gian mở cửa" });
       }
-      if (price_per_hour < 0) {
+      if (parseFloat(price_per_hour) < 0) {
         return res
           .status(400)
           .json({ error: "Giá mỗi giờ không được nhỏ hơn 0" });
@@ -149,19 +219,20 @@ class FieldController {
         name,
         address,
         phone,
-        latitude,
-        longitude,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
         open_time,
         close_time,
-        price_per_hour,
+        price_per_hour: parseFloat(price_per_hour),
         surface_type,
-        images,
+        images: images ? JSON.parse(images) : [],
         description,
+        owner_id: req.session.user_id || null,
       });
       if (!field) {
         return res.status(404).json({ error: "Sân bóng không tồn tại" });
       }
-      res.json(field);
+      res.json({ id: field.id });
     } catch (err) {
       console.error("Lỗi khi cập nhật sân bóng:", err.stack);
       res.status(500).json({ error: "Lỗi máy chủ nội bộ: " + err.message });

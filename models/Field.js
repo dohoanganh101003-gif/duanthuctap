@@ -1,21 +1,29 @@
 class Field {
   constructor(pool) {
-    this.pool = pool; // Đảm bảo pool được gán
+    this.pool = pool;
   }
 
   async getAllFields({ search, lat, lng, radius = 10000 }) {
     try {
       let query = `
           SELECT id, name, address, phone, latitude, longitude, open_time, close_time, images, description, price_per_hour, surface_type, owner_id
-          FROM public.fields
         `;
       let params = [];
       let conditions = [];
+
       if (search) {
         conditions.push("LOWER(name) LIKE LOWER($" + (params.length + 1) + ")");
         params.push(`%${search}%`);
       }
+
       if (lat && lng) {
+        query += `,
+          ST_Distance(
+            ST_SetSRID(ST_MakePoint(longitude, latitude), 4326),
+            ST_SetSRID(ST_MakePoint($${params.length + 1}, $${
+          params.length + 2
+        }), 4326)
+          ) AS distance`;
         conditions.push(
           "ST_DWithin(ST_SetSRID(ST_MakePoint(longitude, latitude), 4326), ST_SetSRID(ST_MakePoint($" +
             (params.length + 1) +
@@ -25,48 +33,31 @@ class Field {
             (params.length + 3) +
             ")"
         );
-        params.push(lng, lat, radius / 111320); // Chuyển m sang độ
+        params.push(lng, lat, radius / 111320);
       }
+
+      query += " FROM public.fields";
+
       if (conditions.length > 0) {
         query += " WHERE " + conditions.join(" AND ");
       }
-      query += " ORDER BY name";
+
+      if (lat && lng) {
+        query += " ORDER BY distance";
+      } else {
+        query += " ORDER BY name";
+      }
+
       const { rows } = await this.pool.query(query, params);
       return rows.map((row) => ({
         ...row,
         latitude: parseFloat(row.latitude),
         longitude: parseFloat(row.longitude),
+        ...(lat && lng ? { distance: parseFloat(row.distance) } : {}), // Chỉ thêm distance khi có lat/lng
       }));
     } catch (err) {
       throw new Error(`Lỗi khi lấy danh sách sân bóng: ${err.message}`);
     }
-  }
-
-  async getGeoJSONFields() {
-    const result = await this.pool.query("SELECT * FROM public.fields");
-    return {
-      type: "FeatureCollection",
-      features: result.rows.map((row) => ({
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [parseFloat(row.longitude), parseFloat(row.latitude)],
-        },
-        properties: {
-          id: row.id,
-          name: row.name,
-          address: row.address,
-          phone: row.phone,
-          open_time: row.open_time,
-          close_time: row.close_time,
-          images: row.images,
-          description: row.description,
-          price_per_hour: row.price_per_hour,
-          surface_type: row.surface_type,
-          owner_id: row.owner_id,
-        },
-      })),
-    };
   }
 
   async getFieldById(id) {
