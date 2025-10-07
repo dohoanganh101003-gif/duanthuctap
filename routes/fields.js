@@ -2,6 +2,22 @@ const express = require("express");
 const router = express.Router();
 const FieldController = require("../controllers/FieldController");
 const Service = require("../models/Service");
+const multer = require("multer");
+const path = require("path");
+
+const fs = require("fs");
+const uploadDir = path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + path.extname(file.originalname)),
+});
+const upload = multer({ storage });
+
 const {
   authenticateToken,
   checkAdmin,
@@ -26,16 +42,55 @@ router.get("/sanbong", (req, res) => {
   fieldController.getFieldsWithSubFields(req, res);
 });
 
-router.post("/api/sanbong", authenticateToken, checkAdmin, (req, res) => {
+router.get("/them_sanbong", authenticateToken, checkAdmin, async (req, res) => {
   const pool = req.app.locals.pool;
-  const fieldController = new FieldController(pool);
-  fieldController.createField(req, res);
+  const result = await pool.query(
+    "SELECT id, username FROM users WHERE role='owner'"
+  );
+  res.render("them_sanbong", { owners: result.rows, session: req.session });
 });
 
-router.put("/api/sanbong/:id", authenticateToken, checkAdmin, (req, res) => {
+router.post(
+  "/api/sanbong",
+  authenticateToken,
+  checkAdmin,
+  upload.array("images", 5),
+  (req, res) => {
+    const pool = req.app.locals.pool;
+    const fieldController = new FieldController(pool);
+
+    if (req.files && req.files.length > 0) {
+      req.body.images = JSON.stringify(
+        req.files.map((f) => "/uploads/" + f.filename)
+      );
+    }
+
+    fieldController.createField(req, res);
+  }
+);
+
+router.put(
+  "/api/sanbong/:id",
+  authenticateToken,
+  checkAdmin,
+  upload.array("images", 5),
+  (req, res) => {
+    const pool = req.app.locals.pool;
+    const fieldController = new FieldController(pool);
+
+    if (req.files && req.files.length > 0) {
+      req.body.images = JSON.stringify(
+        req.files.map((f) => "/uploads/" + f.filename)
+      );
+    }
+
+    fieldController.updateField(req, res);
+  }
+);
+router.get("/sua_sanbong/:id", (req, res) => {
   const pool = req.app.locals.pool;
   const fieldController = new FieldController(pool);
-  fieldController.updateField(req, res);
+  fieldController.getFieldById(req, res);
 });
 
 router.delete("/api/sanbong/:id", authenticateToken, checkAdmin, (req, res) => {

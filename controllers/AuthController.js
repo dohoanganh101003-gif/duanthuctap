@@ -8,9 +8,15 @@ class AuthController {
   }
 
   // ----- Render form đăng ký -----
-  async getRegisterPage(req, res) {
+  async getRegisterPage(req, res, role = "user") {
     try {
-      res.render("dangky", { session: req.session || {} });
+      if (role === "owner") {
+        res.render("dangky_owner", { session: req.session || {}, role });
+      } else if (role === "admin") {
+        res.render("dangky_admin", { session: req.session || {}, role });
+      } else {
+        res.render("dangky", { session: req.session || {}, role });
+      }
     } catch (err) {
       console.error("Error rendering register page:", err.stack);
       res.status(500).send("Lỗi khi tải trang đăng ký");
@@ -18,12 +24,12 @@ class AuthController {
   }
 
   // ----- Xử lý đăng ký -----
-  async register(req, res) {
+  async register(req, res, roleFromRoute = "user") {
     if (!req.body) {
       return res.status(400).json({ error: "Dữ liệu đầu vào không hợp lệ" });
     }
 
-    const { username, email, password, role, phone } = req.body;
+    const { username, email, password, phone } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -47,19 +53,17 @@ class AuthController {
       // Mã hóa mật khẩu
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Nếu không truyền role thì mặc định là user
-      const finalRole =
-        role && ["user", "owner", "admin"].includes(role) ? role : "user";
+      // Bỏ role trong body, chỉ lấy role từ route
+      const finalRole = roleFromRoute;
 
-      // Tạo user mới
       const result = await this.pool.query(
         `INSERT INTO public.users (username, email, password, phone, role) 
-         VALUES ($1, $2, $3, $4, $5) 
-         RETURNING *`,
+       VALUES ($1, $2, $3, $4, $5) 
+       RETURNING *`,
         [username, email, hashedPassword, phone || null, finalRole]
       );
 
-      console.log("Registered user:", result.rows[0]);
+      console.log(`Đăng ký thành công với role: ${finalRole}`, result.rows[0]);
       res.redirect("/dangnhap");
     } catch (err) {
       console.error("Error registering user:", err.message);
@@ -118,7 +122,7 @@ class AuthController {
       req.session.user_id = user.id;
       req.session.role = user.role;
 
-      console.log(`✅ ${user.role} đăng nhập thành công:`, user.username);
+      console.log(` ${user.role} đăng nhập thành công:`, user.username);
 
       // Điều hướng theo role
       if (user.role === "admin") {

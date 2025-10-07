@@ -61,10 +61,9 @@ class Field {
   }
 
   async getFieldById(id) {
-    const result = await this.pool.query(
-      "SELECT * FROM public.fields WHERE id = $1",
-      [id]
-    );
+    const result = await this.pool.query("SELECT * FROM fields WHERE id = $1", [
+      id,
+    ]);
     return result.rows[0];
   }
 

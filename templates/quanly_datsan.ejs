@@ -9,94 +9,103 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
-    <link rel="stylesheet" href="/static/trangchu.css">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/trangchu.css">
 
 </head>
 
 <body>
-    <header class="main-header bg-primary text-white p-3">
-        <div class="header-content">
-            <h1 class="site-title">Quản Lý Sân Bóng</h1>
-            <nav class="navbar navbar-expand-lg navbar-light bg-light mt-3">
-                <div class="container-fluid">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <a class="nav-link active" href="/">Trang chủ</a>
-                        <a class="nav-item nav-link active" href="/lichsu_datsan">Lịch sử đặt sân</a>
+    <header class="main-header shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-dark py-3">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold text-white" href="/">Quản Lý Sân Bóng</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item"><a class="nav-link text-white" href="/">Trang chủ</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/lichsu_datsan">Lịch sử đặt
+                                sân</a></li>
                         <% if (session.role==='admin' ) { %>
-                            <a class="nav-item nav-link active" href="/danhsach-dichvu">Danh sách dịch vụ</a>
-                            <a class="nav-item nav-link active" href="/them_sanbong">Thêm sân bóng</a>
-                            <a class="nav-item nav-link active" href="/them_dichvu">Thêm dịch vụ</a>
-                            <a class="nav-item nav-link active" href="/quanly_datsan">Quản lý đặt sân</a>
+                            <li class="nav-item"><a class="nav-link text-white" href="/danhsach-dichvu">Dịch vụ</a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link text-white" href="/them_sanbong">Thêm sân</a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link text-white" href="/them_dichvu">Thêm dịch vụ</a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link text-white" href="/quanly_datsan">Quản lý đặt
+                                    sân</a></li>
                             <% } %>
                     </ul>
 
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav ml-auto">
                         <% if (session.user_id) { %>
-                            <li class="nav-item"><a class="nav-link" href="/dangxuat">Đăng xuất</a></li>
+                            <li class="nav-item"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
                             <% } else { %>
-                                <li class="nav-item"><a class="nav-link" href="/dangnhap">Đăng nhập</a></li>
-                                <li class="nav-item"><a class="nav-link" href="/dangky">Đăng ký</a></li>
+                                <li class="nav-item"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
                                 <% } %>
                     </ul>
                 </div>
-            </nav>
-        </div>
+            </div>
+        </nav>
     </header>
     <main class="container mt-4">
         <h2>Quản lý đặt sân</h2>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Người đặt</th>
-                    <th>Sân con</th>
-                    <th>Thời gian</th>
-                    <th>Tổng tiền</th>
-                    <th>Trạng thái</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% bookings.forEach(b=> { %>
+        <div class="table-container">
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
                     <tr>
-                        <td>
-                            <%= b.username %>
-                        </td>
-                        <td>
-                            <%= b.sub_field_name %> - <%= b.field_name %>
-                        </td>
-                        <td>
-                            <%= new Date(b.start_time).toLocaleString("vi-VN", { hour12: false }) %>
-                                -
-                                <%= new Date(b.end_time).toLocaleString("vi-VN", { hour12: false }) %>
-                        </td>
-
-                        <td>
-                            <%= b.total_price %> VNĐ
-                        </td>
-                        <td>
-                            <%= b.status %>
-                        </td>
-                        <td>
-                            <% if (b.status==='pending' ) { %>
-                                <form action="/api/bookings/<%= b.id %>/status?_method=PUT" method="POST"
-                                    style="display:inline;">
-                                    <input type="hidden" name="status" value="confirmed">
-                                    <button type="submit" class="btn btn-success btn-sm">Chấp thuận</button>
-                                </form>
-                                <form action="/api/bookings/<%= b.id %>/status?_method=PUT" method="POST"
-                                    style="display:inline;">
-                                    <input type="hidden" name="status" value="cancelled">
-                                    <button type="submit" class="btn btn-danger btn-sm">Từ chối</button>
-                                </form>
-                                <% } %>
-                        </td>
+                        <th>Người đặt</th>
+                        <th>Sân con</th>
+                        <th>Thời gian</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
                     </tr>
-                    <% }) %>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <% bookings.forEach(b=> { %>
+                        <tr>
+                            <td>
+                                <%= b.username %>
+                            </td>
+                            <td>
+                                <%= b.sub_field_name %> - <%= b.field_name %>
+                            </td>
+                            <td>
+                                <%= new Date(b.start_time).toLocaleString("vi-VN", { hour12: false }) %>
+                                    -
+                                    <%= new Date(b.end_time).toLocaleString("vi-VN", { hour12: false }) %>
+                            </td>
+
+                            <td>
+                                <%= b.total_price %> VNĐ
+                            </td>
+                            <td>
+                                <%= b.status %>
+                            </td>
+                            <td>
+                                <% if (b.status==='pending' ) { %>
+                                    <form action="/api/bookings/<%= b.id %>/status?_method=PUT" method="POST"
+                                        style="display:inline;">
+                                        <input type="hidden" name="status" value="confirmed">
+                                        <button type="submit" class="btn btn-success btn-sm">Chấp thuận</button>
+                                    </form>
+                                    <form action="/api/bookings/<%= b.id %>/status?_method=PUT" method="POST"
+                                        style="display:inline;">
+                                        <input type="hidden" name="status" value="cancelled">
+                                        <button type="submit" class="btn btn-danger btn-sm">Từ chối</button>
+                                    </form>
+                                    <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+        </div>
 
     </main>
 

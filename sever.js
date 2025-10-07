@@ -13,7 +13,7 @@ const fieldRoutes = require("./routes/fields");
 const bookingsRoutes = require("./routes/bookings");
 const serviceRoutes = require("./routes/service");
 const ownerRoutes = require("./routes/owner");
-
+const subFieldRoutes = require("./routes/subFields");
 const app = express();
 
 // Middleware
@@ -23,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "static")));
 app.use("/scripts", express.static(path.join(__dirname, "scripts")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(
   session({
@@ -32,6 +33,7 @@ app.use(
     cookie: { maxAge: 3600000 },
   })
 );
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "templates"));
 
@@ -43,11 +45,10 @@ const pool = new Pool({
   password: "123456",
   port: 5432,
 });
-
 // Trang chủ
 app.get("/", (req, res) => {
   const fieldController = new FieldController(pool);
-  fieldController.getHomePage(req, res); // dùng controller thay vì query thủ công
+  fieldController.getHomePage(req, res);
 });
 
 // Kiểm tra kết nối DB
@@ -56,7 +57,7 @@ pool.connect((err) => {
     console.error("Database connection error:", err.stack);
     process.exit(1);
   }
-  console.log("✅ Connected to database quanlysanbong");
+  console.log("Em chào đại ca Hoàng Anh");
   app.locals.pool = pool;
 });
 const bookingController = new BookingController(pool);
@@ -67,6 +68,7 @@ app.use("/", authRoutes);
 app.use("/", fieldRoutes);
 app.use("/", bookingsRoutes);
 app.use("/owner", ownerRoutes);
+app.use("/", subFieldRoutes);
 
 // Route thêm sân bóng
 app.get("/them_sanbong", (req, res) => {

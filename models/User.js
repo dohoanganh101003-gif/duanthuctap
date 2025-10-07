@@ -24,7 +24,7 @@ class User {
   async createUser({ username, email, password, phone, role }) {
     const hashedPassword = await bcrypt.hash(password, 10);
     await this.pool.query(
-      "INSERT INTO public.users (username, email, password_hash, phone, role) VALUES ($1, $2, $3, $4, $5)",
+      "INSERT INTO public.users (username, email, password, phone, role) VALUES ($1, $2, $3, $4, $5)",
       [username, email, hashedPassword, phone, role]
     );
   }

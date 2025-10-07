@@ -5,19 +5,39 @@ const config = require("../config");
 
 router.get("/dangky", (req, res) => {
   const pool = req.app.locals.pool;
-  console.log("pool in /dangky:", pool);
-  if (!pool) console.error("Error: pool is undefined in /dangky");
   const authController = new AuthController(pool);
-  authController.getRegisterPage(req, res);
+  authController.getRegisterPage(req, res, "user");
 });
 
 router.post("/dangky", (req, res) => {
   const pool = req.app.locals.pool;
-  console.log("pool in POST /dangky:", pool);
-  console.log("req.body in POST /dangky:", req.body);
-  if (!pool) console.error("Error: pool is undefined in POST /dangky");
   const authController = new AuthController(pool);
-  authController.register(req, res);
+  authController.register(req, res, "user");
+});
+
+router.get("/dangky-owner", (req, res) => {
+  const pool = req.app.locals.pool;
+  const authController = new AuthController(pool);
+  authController.getRegisterPage(req, res, "owner");
+});
+
+router.post("/dangky-owner", (req, res) => {
+  const pool = req.app.locals.pool;
+  const authController = new AuthController(pool);
+  authController.register(req, res, "owner");
+});
+
+// ----- Admin đăng ký -----
+router.get("/dangky-admin", (req, res) => {
+  const pool = req.app.locals.pool;
+  const authController = new AuthController(pool);
+  authController.getRegisterPage(req, res, "admin");
+});
+
+router.post("/dangky-admin", (req, res) => {
+  const pool = req.app.locals.pool;
+  const authController = new AuthController(pool);
+  authController.register(req, res, "admin");
 });
 
 router.get("/dangnhap", (req, res) => {

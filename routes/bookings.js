@@ -52,6 +52,7 @@ router.post("/api/dat-san", authenticateToken, (req, res) => {
 });
 
 // API admin/owner cập nhật trạng thái booking
+// API admin/owner cập nhật trạng thái booking
 router.put(
   "/api/bookings/:id/status",
   authenticateToken,
@@ -66,14 +67,14 @@ router.put(
         return res.status(400).json({ error: "Trạng thái không hợp lệ" });
       }
 
-      // Nếu là owner thì phải đảm bảo booking thuộc sân của owner đó
+      // Nếu là chủ sân thì kiểm tra booking có thuộc sân của họ không
       if (req.user.role === "owner") {
         const check = await pool.query(
-          `SELECT b.id 
-         FROM booking b
-         JOIN sub_fields sf ON b.sub_field_id = sf.id
-         JOIN fields f ON sf.field_id = f.id
-         WHERE b.id = $1 AND f.owner_id = $2`,
+          `SELECT b.id
+           FROM booking b
+           JOIN sub_fields sf ON b.sub_field_id = sf.id
+           JOIN fields f ON sf.field_id = f.id
+           WHERE b.id = $1 AND f.owner_id = $2`,
           [id, req.user.user_id]
         );
 
@@ -84,18 +85,24 @@ router.put(
         }
       }
 
-      // Cập nhật trạng thái
+      // Cập nhật trạng thái booking
       await pool.query(`UPDATE booking SET status = $1 WHERE id = $2`, [
         status,
         id,
       ]);
 
-      console.log(
-        `Booking ${id} cập nhật thành công sang trạng thái: ${status}`
-      );
-      res.redirect("back"); // quay lại trang trước (EJS quản lý đặt sân)
+      console.log(`✅ Booking ${id} cập nhật thành công sang: ${status}`);
+
+      // ✅ Redirect chính xác theo role
+      if (req.user.role === "admin") {
+        return res.redirect("/quanly_datsan");
+      } else if (req.user.role === "owner") {
+        return res.redirect("/owner/chusan_datsan");
+      } else {
+        return res.redirect("/lichsu_datsan");
+      }
     } catch (err) {
-      console.error("Lỗi cập nhật booking:", err);
+      console.error("❌ Lỗi cập nhật booking:", err);
       res.status(500).json({ error: "Lỗi server khi cập nhật booking" });
     }
   }

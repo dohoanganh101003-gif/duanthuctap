@@ -59,6 +59,15 @@ function formatTime(time) {
   return `${formattedHour}:${min.toString().padStart(2, "0")} ${period}`;
 }
 
+// Hàm chuyển loại mặt sân sang tiếng Việt
+function translateSurfaceType(type) {
+  const t = (type || "").toString().toLowerCase();
+  if (t === "artificial") return "Cỏ nhân tạo";
+  if (t === "grass") return "Cỏ tự nhiên";
+  if (t === "indoor") return "Sân trong nhà";
+  return type || "Không xác định";
+}
+
 map.on(L.Draw.Event.CREATED, (e) => {
   if (e.layerType === "circle") {
     const layer = e.layer;
@@ -78,126 +87,13 @@ map.on(L.Draw.Event.DELETED, () => {
   resetSanbongListAndMap();
 });
 
-function filterSanbongWithinCircle(circle) {
-  if (geoJsonLayer) {
-    map.removeLayer(geoJsonLayer);
-    geoJsonLayer = null;
-  }
-  document.querySelector(".table")?.classList.add("table-hidden");
-  const center = circle.getLatLng();
-  const radius = circle.getRadius();
-
-  fetch("http://localhost:3003/api/sanbong")
-    .then((response) => {
-      console.log("Phản hồi API /api/sanbong:", response.status);
-      if (!response.ok)
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      return response.json();
-    })
-    .then((data) => {
-      console.log("Dữ liệu sân bóng:", data);
-      if (data.type === "FeatureCollection" && Array.isArray(data.features)) {
-        const sanbongInCircle = data.features.filter((feature) => {
-          const coords = feature.geometry.coordinates;
-          if (!coords || coords.length < 2) {
-            console.error("Tọa độ không hợp lệ:", feature);
-            return false;
-          }
-          const latlng = L.latLng(coords[1], coords[0]);
-          const distance = map.distance(center, latlng);
-          return distance <= radius;
-        });
-
-        if (circleLabel) {
-          map.removeLayer(circleLabel);
-        }
-        circleLabel = L.marker(center, {
-          icon: L.divIcon({
-            className: "circle-label",
-            html: `<div style="background-color: white; border-radius: 50%; padding: 6px 10px; border: 2px solid #ff7800; font-weight: bold; color: red; text-align: center; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">${sanbongInCircle.length}</div>`,
-            iconSize: [40, 40],
-          }),
-        }).addTo(map);
-
-        geoJsonLayer = L.geoJSON(
-          {
-            type: "FeatureCollection",
-            features: sanbongInCircle,
-          },
-          {
-            pointToLayer: (feature, latlng) =>
-              L.circleMarker(latlng, {
-                radius: 8,
-                fillColor: "#00FF00",
-                color: "#000",
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8,
-              }),
-            onEachFeature: (feature, layer) => {
-              const props = feature.properties || {};
-              const coords = feature.geometry.coordinates;
-              if (!coords || coords.length < 2) {
-                console.error("Tọa độ không hợp lệ trong feature:", feature);
-                layer.bindPopup("Thông tin sân bóng không khả dụng.");
-                return;
-              }
-              const imageHtml =
-                props.images && props.images.length > 0
-                  ? `<img src="${props.images[0]}" alt="Sân bóng" style="max-width: 100%; height: auto;" />`
-                  : "";
-              layer.bindPopup(`
-                <div class="popup-container">
-                  <h3 class="popup-title">${props.name || "N/A"}</h3>
-                  <p class="popup-address">Địa chỉ: ${
-                    props.address || "N/A"
-                  }</p>
-                  <p class="popup-phone">Điện thoại: ${props.phone || "N/A"}</p>
-                  <p class="popup-time">Mở cửa: ${formatTime(
-                    props.open_time
-                  )} - ${formatTime(props.close_time)}</p>
-                  <p class="popup-price">Giá mỗi giờ: ${
-                    props.price_per_hour
-                      ? props.price_per_hour.toLocaleString("vi-VN") + " VNĐ"
-                      : "N/A"
-                  }</p>
-                  <p class="popup-surface">Loại mặt sân: ${
-                    props.surface_type || "N/A"
-                  }</p>
-                  <p class="popup-description">Mô tả: ${
-                    props.description || "N/A"
-                  }</p>
-                  ${imageHtml}
-                  <div class="popup-footer">
-                    <a href="/xem_dichvu/${
-                      props.id || ""
-                    }" class="btn btn-primary btn-sm">Xem dịch vụ</a>
-                    <button class="btn btn-primary btn-sm" onclick="window.getDirections(${
-                      coords[1]
-                    }, ${coords[0]})">Chỉ đường</button>
-                    <a href="/dat-san?field_id=${
-                      props.id || ""
-                    }" class="btn btn-success btn-sm">Đặt sân</a>
-
-                  </div>
-                </div>
-              `);
-            },
-          }
-        ).addTo(map);
-        console.log(
-          `Tìm thấy ${sanbongInCircle.length} sân bóng trong vòng tròn.`
-        );
-      } else {
-        console.error("Dữ liệu GeoJSON không hợp lệ:", data);
-        alert("Dữ liệu sân bóng không hợp lệ!");
-      }
-    })
-    .catch((err) => {
-      console.error("Lỗi khi lọc sân bóng trong vòng tròn:", err);
-      alert("Lỗi khi lọc sân bóng trong vòng tròn!");
-    });
-}
+map.on("popupopen", function (e) {
+  const popup = e.popup;
+  const imgs = popup.getElement().querySelectorAll("img");
+  imgs.forEach((img) => {
+    img.addEventListener("load", () => popup.update());
+  });
+});
 
 function resetSanbongListAndMap() {
   document.querySelector(".table")?.classList.remove("table-hidden");
@@ -263,7 +159,7 @@ function displaySanbongList(data) {
           <td>${field.phone || "N/A"}</td>
           <td>${formatTime(field.open_time)}</td>
           <td>${formatTime(field.close_time)}</td>
-          <td>${field.surface_type || "N/A"}</td>
+          <td>${translateSurfaceType(field.surface_type)}</td>
           <td>${
             field.price_per_hour
               ? field.price_per_hour.toLocaleString("vi-VN") + " VNĐ"
@@ -325,39 +221,53 @@ function displaySanbongOnMap(geoJSON) {
       }
       const imageHtml =
         props.images && props.images.length > 0
-          ? `<img src="${props.images[0]}" alt="Sân bóng" style="max-width: 100%; height: auto;" />`
+          ? `<div class="popup-image-wrapper">
+             <img src="${props.images[0]}" alt="Sân bóng" class="popup-image" onerror="this.style.display='none';" />
+             </div>`
           : "";
       layer.bindPopup(`
         <div class="popup-container">
-          <h3 class="popup-title">${props.name || "N/A"}</h3>
-          <p class="popup-address">Địa chỉ: ${props.address || "N/A"}</p>
-          <p class="popup-phone">Điện thoại: ${props.phone || "N/A"}</p>
-          <p class="popup-time">Mở cửa: ${formatTime(
-            props.open_time
-          )} - ${formatTime(props.close_time)}</p>
-          <p class="popup-price">Giá mỗi giờ: ${
-            props.price_per_hour
-              ? props.price_per_hour.toLocaleString("vi-VN") + " VNĐ"
-              : "N/A"
-          }</p>
-          <p class="popup-surface">Loại mặt sân: ${
-            props.surface_type || "N/A"
-          }</p>
-          <p class="popup-description">Mô tả: ${props.description || "N/A"}</p>
-          ${imageHtml}
-          <div class="popup-footer">
-            <a href="/xem_dichvu/${
-              props.id || ""
-            }" class="btn btn-primary btn-sm">Xem dịch vụ</a>
-            <button class="btn btn-primary btn-sm" onclick="window.getDirections(${
-              coords[1]
-            }, ${coords[0]})">Chỉ đường</button>
-            <a href="/dat-san?field_id=${
-              props.id || ""
-            }" class="btn btn-success btn-sm">Đặt sân</a>
-          </div>
-        </div>
-      `);
+        <h3 class="popup-title">${props.name || "N/A"}</h3>
+        <p class="popup-address"><i class="fa-solid fa-location-dot"></i> ${
+          props.address || "N/A"
+        }</p>
+        <p class="popup-phone"><i class="fa-solid fa-phone"></i> ${
+          props.phone || "N/A"
+        }</p>
+        <p class="popup-time"><i class="fa-solid fa-clock"></i> ${formatTime(
+          props.open_time
+        )} - ${formatTime(props.close_time)}</p>
+         <p class="popup-price"><i class="fa-solid fa-money-bill"></i> ${
+           props.price_per_hour
+             ? props.price_per_hour.toLocaleString("vi-VN") + " VNĐ"
+             : "N/A"
+         }</p>
+         <p class="popup-surface"><i class="fa-solid fa-layer-group"></i> ${translateSurfaceType(
+           props.surface_type
+         )}</p>
+        <p class="popup-description"><i class="fa-solid fa-pen"></i> ${
+          props.description || "N/A"
+        }</p>
+         ${imageHtml}
+         <div class="popup-footer">
+          <a href="/xem_dichvu/${
+            props.id || ""
+          }" class="btn btn-primary btn-sm">Xem dịch vụ</a>
+           <button class="btn btn-primary btn-sm" onclick="window.getDirections(${
+             coords[1]
+           }, ${coords[0]})">Chỉ đường</button>
+         <a href="/dat-san?field_id=${
+           props.id || ""
+         }" class="btn btn-success btn-sm">Đặt sân</a>
+         <a href="https://www.google.com/maps/dir/?api=1&destination=${
+           coords[1]
+         },${coords[0]}" 
+                       target="_blank" class="btn btn-info btn-sm">
+                       Google Map
+          </a>
+         </div>
+         </div>
+    `);
     },
   }).addTo(map);
 }
@@ -406,7 +316,7 @@ if (nearbyButton) {
       console.error("Trình duyệt không hỗ trợ geolocation.");
       alert("Trình duyệt không hỗ trợ định vị.");
       return;
-    }   
+    }
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const userLat = position.coords.latitude;
@@ -421,7 +331,7 @@ if (nearbyButton) {
           .then((data) => {
             if (
               data.type === "FeatureCollection" &&
-              Array.isArray(data.features) && 
+              Array.isArray(data.features) &&
               data.features.length > 0
             ) {
               const nearestField = data.features[0]; // Lấy sân bóng gần nhất
@@ -487,7 +397,7 @@ function startTracking() {
           fillColor: "#00BFFF",
           color: "#000",
           weight: 1,
-          opacity: 1, 
+          opacity: 1,
           fillOpacity: 0.8,
         })
           .addTo(map)
@@ -604,6 +514,34 @@ window.deleteSanbong = function (sanbongId) {
       });
   }
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.getElementById("toggle-view");
+  const mapDiv = document.getElementById("map");
+  const listDiv = document.getElementById("stadium-list");
+
+  let showingMap = true; // mặc định hiển thị map
+
+  toggleBtn.addEventListener("click", () => {
+    if (showingMap) {
+      // Ẩn map, hiện danh sách
+      mapDiv.style.display = "none";
+      listDiv.style.display = "block";
+      toggleBtn.textContent = "Xem bản đồ";
+    } else {
+      // Ẩn danh sách, hiện map
+      mapDiv.style.display = "block";
+      listDiv.style.display = "none";
+      toggleBtn.textContent = "Xem danh sách";
+      setTimeout(() => {
+        if (window.map) {
+          window.map.invalidateSize();
+        }
+      }, 200);
+    }
+    showingMap = !showingMap;
+  });
+});
 
 // Tải dữ liệu sân bóng ban đầu
 document.addEventListener("DOMContentLoaded", () => {

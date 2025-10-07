@@ -1,52 +1,286 @@
-/* Reset */
+/* Reset cơ bản */
 body, html {
   margin: 0;
   padding: 0;
   height: 100%;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #f9f9f9;
 }
 
-/* Header */
+/* HEADER */
 .main-header {
   width: 100%;
 }
 
-.site-title {
-  font-size: 2.2rem; 
-  font-weight: bold;
-  margin: 0;
+/* Navbar có nền gradient xanh biển dịu */
+.navbar {
+  background: linear-gradient(90deg, #3a8dde, #2b79c2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Container cho phần tìm kiếm */
-.page-container {
-  margin-top: 25px;   
-  padding: 0 20px;   
+.navbar-brand {
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: white !important;
 }
 
-/* Tìm kiếm */
-.search-container {
-  margin-bottom: 25px; 
+.navbar .nav-link {
+  color: white !important;
+  transition: 0.2s;
+  font-size: 1.3rem;
 }
 
-/* Map */
+.navbar .nav-link:hover {
+  text-decoration: underline;
+  color: #e3f2fd !important;
+}
+
+/* PHẦN TÌM KIẾM */
+.search-section {
+  background-color: #ffffff;
+  border-bottom: 3px solid #2b79c2;
+  padding: 40px 0 30px;
+}
+
+.search-section h2 {
+  font-size: 1.8rem;
+  color: #000000; /* chữ đen */
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* Ô nhập */
+#search-input {
+  max-width: 500px;
+  border: 2px solid #2b79c2;
+  border-radius: 8px 0 0 8px;
+}
+
+/* Hàng nút tìm kiếm */
+.input-group-append {
+  display: flex;
+  align-items: center;
+}
+
+/* TẤT CẢ NÚT TRONG KHUNG TÌM KIẾM */
+#search-button,
+#nearby-button,
+#toggle-view {
+  height: 100%;
+  border: none;
+  padding: 8px 16px;
+  transition: 0.25s ease;
+  color: #fff !important;
+  font-weight: 500;
+}
+
+/* Nút TÌM KIẾM (xanh biển, bo góc phải) */
+#search-button {
+  background-color: #2b79c2 !important;
+  border-color: #2b79c2 !important;
+  border-radius: 0 6px 6px 0 !important;
+}
+
+#search-button:hover {
+  background-color: #1e63a5 !important;
+}
+
+/* Nút GẦN TÔI (xanh biển, bo tròn nhẹ) */
+#nearby-button {
+  background-color: #2b79c2 !important;
+  border-color: #2b79c2 !important;
+  border-radius: 6px !important;
+  margin-left: 8px;
+}
+
+#nearby-button:hover {
+  background-color: #1e63a5 !important;
+}
+
+/* Nút CHUYỂN ĐỔI (đỏ, bo góc mềm) */
+#toggle-view,
+.toggle-btn {
+  background-color: #dc3545 !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+  margin-left: 8px;
+  border: none;
+}
+
+#toggle-view:hover,
+.toggle-btn:hover {
+  background-color: #b02a37 !important;
+  color: #fff !important;
+}
+
+/* LỊCH SỬ TÌM KIẾM */
+#search-history {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+#search-history .history-item {
+  background-color: #e3f2fd;
+  border: 1px solid #90caf9;
+  color: #1565c0;
+  padding: 6px 12px;
+  margin: 5px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#search-history .history-item:hover {
+  background-color: #bbdefb;
+}
+
+/* BẢN ĐỒ */
 #map {
   width: 100%;
   height: 700px;
-  margin-top: 20px;    
-  margin-bottom: 30px; 
+  margin-top: 20px;
+  margin-bottom: 30px;
+  border: none;
+  border-radius: 0;
 }
 
-/* Danh sách */
+/* DANH SÁCH */
+#stadium-list {
+  padding: 40px 20px;
+}
+
 .table-container {
-  width: 100%;
-  padding: 0 20px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table thead th {
+  background-color: #2b79c2;
+  color: white;
+  font-weight: 600;
+  text-align: center;
+}
+
+.table tbody td {
+  vertical-align: middle;
+  text-align: center;
 }
 
 h2 {
   margin: 20px 0;
 }
+
 .no-bullet {
   list-style-type: none;
   padding-left: 0;
   margin: 0;
 }
 
+.popup-footer .btn {
+  border: none;
+  font-weight: 500;
+  color: #fff !important;
+  border-radius: 6px;
+  padding: 6px 12px;
+  transition: 0.25s;
+}
+
+.popup-footer .btn-primary,
+.table .btn-primary {
+  background-color: #4285F4 !important;
+}
+
+.popup-footer .btn-primary:hover,
+.table .btn-primary:hover {
+  background-color: #3367D6 !important;
+}
+
+.popup-footer .btn-success,
+.table .btn-success {
+  background-color: #28a745 !important;
+  color: #fff !important;
+}
+
+.popup-footer .btn-success:hover,
+.table .btn-success:hover {
+  background-color: #218838 !important;
+}
+
+.popup-image-wrapper {
+  width: 100%;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.popup-image {
+  width: 100%;
+  max-width: 260px;     
+  height: 160px;        
+  object-fit: cover;    
+  border-radius: 5px;   
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  display: inline-block;
+}
+
+/* Nút Google Map trong popup */
+.popup-footer .btn-info {
+  background-color: #4285F4 !important; 
+  color: #fff !important;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.popup-footer .btn-info:hover {
+  background-color: #3367D6 !important;
+}
+
+.popup-footer {
+  display: flex;
+  flex-wrap: wrap;              
+  justify-content: center;      
+  gap: 6px;                    
+  margin-top: 8px;
+}
+
+.popup-footer .btn {
+  min-width: 100px;             
+  text-align: center;
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.popup-footer .btn i {
+  margin-right: 5px;
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+
+
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  #map {
+    height: 500px;
+  }
+  .search-section h2 {
+    font-size: 1.4rem;
+  }
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  #search-input {
+    max-width: 100%;
+  }
+  #nearby-button, #toggle-view {
+    margin-left: 4px;
+  }
+}

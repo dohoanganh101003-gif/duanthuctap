@@ -122,54 +122,25 @@ class FieldController {
       description,
       price_per_hour,
       surface_type,
+      owner_id,
     } = req.body;
-    try {
-      if (
-        !name ||
-        !address ||
-        !phone ||
-        !open_time ||
-        !close_time ||
-        !latitude ||
-        !longitude ||
-        !price_per_hour
-      ) {
-        return res
-          .status(400)
-          .json({ error: "Thiếu thông tin sân bóng bắt buộc!" });
-      }
-      if (
-        new Date(`1970-01-01T${close_time}Z`) <=
-        new Date(`1970-01-01T${open_time}Z`)
-      ) {
-        return res
-          .status(400)
-          .json({ error: "Thời gian đóng cửa phải sau thời gian mở cửa" });
-      }
-      if (parseFloat(price_per_hour) < 0) {
-        return res
-          .status(400)
-          .json({ error: "Giá mỗi giờ không được nhỏ hơn 0" });
-      }
-      const field = await this.fieldModel.createField({
-        name,
-        address,
-        phone,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        open_time,
-        close_time,
-        images: images ? JSON.parse(images) : [],
-        description,
-        price_per_hour: parseFloat(price_per_hour),
-        surface_type,
-        owner_id: req.session.user_id || null,
-      });
-      res.status(201).json({ id: field.id });
-    } catch (err) {
-      console.error("Lỗi khi tạo sân bóng:", err.stack);
-      res.status(500).json({ error: "Lỗi máy chủ nội bộ: " + err.message });
-    }
+
+    const field = await this.fieldModel.createField({
+      name,
+      address,
+      phone,
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+      open_time,
+      close_time,
+      images: images ? JSON.parse(images) : [],
+      description,
+      price_per_hour: parseFloat(price_per_hour),
+      surface_type,
+      owner_id, // gán vào đây
+    });
+
+    res.status(201).json({ id: field.id });
   }
 
   async updateField(req, res) {
@@ -250,6 +221,22 @@ class FieldController {
     } catch (err) {
       console.error("Lỗi khi xóa sân bóng:", err.stack);
       res.status(500).json({ error: "Lỗi máy chủ nội bộ: " + err.message });
+    }
+  }
+  async getFieldById(req, res) {
+    try {
+      const { id } = req.params;
+      const field = await this.fieldModel.getFieldById(id);
+      if (!field) {
+        return res.status(404).send("Không tìm thấy sân bóng");
+      }
+      res.render("sua-sanbong", {
+        session: req.session || {},
+        field,
+      });
+    } catch (err) {
+      console.error("Lỗi khi lấy sân bóng:", err.stack);
+      res.status(500).send("Lỗi máy chủ: " + err.message);
     }
   }
 }

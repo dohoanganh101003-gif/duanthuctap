@@ -116,6 +116,26 @@ router.post(
   }
 );
 
+router.post(
+  "/api/dichvu",
+  authenticateToken,
+  checkAdminOrOwner,
+  async (req, res) => {
+    try {
+      const pool = req.app.locals.pool;
+      const { field_id, name, description, price } = req.body;
+      await pool.query(
+        "INSERT INTO service (field_id, name, description, price) VALUES ($1,$2,$3,$4)",
+        [field_id, name, description, price]
+      );
+      res.status(201).json({ message: "Thêm dịch vụ thành công" });
+    } catch (err) {
+      console.error("❌ Lỗi thêm dịch vụ:", err);
+      res.status(500).json({ error: "Lỗi server" });
+    }
+  }
+);
+
 //Trang sửa dịch vụ
 router.get(
   "/sua_dichvu/:id",
@@ -224,6 +244,84 @@ router.post(
     } catch (err) {
       console.error("❌ Lỗi xóa dịch vụ:", err);
       res.status(500).send("Lỗi server khi xóa dịch vụ");
+    }
+  }
+);
+// ===== API SỬA DỊCH VỤ (dành cho fetch PUT) =====
+router.put(
+  "/api/dichvu/:id",
+  authenticateToken,
+  checkAdminOrOwner,
+  async (req, res) => {
+    try {
+      const pool = req.app.locals.pool;
+      const { id } = req.params;
+      const { field_id, name, description, price } = req.body;
+
+      if (req.user.role === "owner") {
+        const checkService = await pool.query(
+          `SELECT s.id FROM service s 
+           JOIN fields f ON s.field_id = f.id
+           WHERE s.id=$1 AND f.owner_id=$2`,
+          [id, req.user.user_id]
+        );
+        if (checkService.rows.length === 0)
+          return res
+            .status(403)
+            .json({ error: "Bạn không có quyền sửa dịch vụ này" });
+      }
+
+      await pool.query(
+        `UPDATE service 
+         SET field_id=$1, name=$2, description=$3, price=$4 
+         WHERE id=$5`,
+        [field_id, name, description, price, id]
+      );
+
+      res.redirect("/danhsach-dichvu");
+    } catch (err) {
+      console.error("❌ Lỗi sửa dịch vụ:", err);
+      res.status(500).json({ error: "Lỗi server khi sửa dịch vụ" });
+    }
+  }
+);
+// ===== API XOÁ DỊCH VỤ (dành cho fetch DELETE) =====
+router.delete(
+  "/api/dichvu/:id",
+  authenticateToken,
+  checkAdminOrOwner,
+  async (req, res) => {
+    try {
+      const pool = req.app.locals.pool;
+      const { id } = req.params;
+
+      // Nếu là chủ sân thì kiểm tra quyền
+      if (req.user.role === "owner") {
+        const checkService = await pool.query(
+          `SELECT s.id 
+           FROM service s 
+           JOIN fields f ON s.field_id = f.id
+           WHERE s.id=$1 AND f.owner_id=$2`,
+          [id, req.user.user_id]
+        );
+
+        if (checkService.rows.length === 0) {
+          return res.status(403).json({
+            error: "Bạn không có quyền xóa dịch vụ này",
+          });
+        }
+      }
+
+      // Tiến hành xóa dịch vụ
+      const result = await pool.query("DELETE FROM service WHERE id=$1", [id]);
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Không tìm thấy dịch vụ để xóa" });
+      }
+
+      res.status(200).json({ message: "Xóa dịch vụ thành công" });
+    } catch (err) {
+      console.error("❌ Lỗi khi xóa dịch vụ:", err);
+      res.status(500).json({ error: "Lỗi server khi xóa dịch vụ" });
     }
   }
 );

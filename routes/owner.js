@@ -127,7 +127,7 @@ router.put(
         bookingId,
       ]);
 
-      res.redirect("/chusan_datsan");
+      res.redirect("/owner/chusan_datsan");
     } catch (err) {
       console.error("Lỗi cập nhật trạng thái booking:", err);
       res.status(500).send("Lỗi server khi cập nhật trạng thái");

@@ -9,44 +9,52 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
-    <link rel="stylesheet" href="/static/trangchu.css">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/trangchu.css">
 
 </head>
 
 <body>
-    <header class="main-header bg-primary text-white p-3">
-        <div class="header-content">
-            <h1 class="site-title">Quản Lý Sân Bóng</h1>
-            <nav class="navbar navbar-expand-lg navbar-light bg-light mt-3">
-                <div class="container-fluid">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <a class="nav-link active" href="/">Trang chủ</a>
-                        <a class="nav-item nav-link active" href="/lichsu_datsan">Lịch sử đặt sân</a>
+    <header class="main-header shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-dark py-3">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold text-white" href="/">Quản Lý Sân Bóng</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item"><a class="nav-link text-white" href="/">Trang chủ</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/lichsu_datsan">Lịch sử đặt
+                                sân</a></li>
                         <% if (session.role==='admin' ) { %>
-                            <a class="nav-item nav-link active" href="/danhsach-dichvu">Danh sách dịch vụ</a>
-                            <a class="nav-item nav-link active" href="/them_sanbong">Thêm sân bóng</a>
-                            <a class="nav-item nav-link active" href="/them_dichvu">Thêm dịch vụ</a>
-                            <a class="nav-item nav-link active" href="/quanly_datsan">Quản lý đặt sân</a>
+                            <li class="nav-item"><a class="nav-link text-white" href="/danhsach-dichvu">Dịch vụ</a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link text-white" href="/them_sanbong">Thêm sân</a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link text-white" href="/them_dichvu">Thêm dịch vụ</a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link text-white" href="/quanly_datsan">Quản lý đặt
+                                    sân</a></li>
                             <% } %>
                     </ul>
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
+                    <ul class="navbar-nav ml-auto">
                         <% if (session.user_id) { %>
-                            <li class="nav-item"><a class="nav-link" href="/dangxuat">Đăng xuất</a></li>
+                            <li class="nav-item"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
                             <% } else { %>
-                                <li class="nav-item"><a class="nav-link" href="/dangnhap">Đăng nhập</a></li>
-                                <li class="nav-item"><a class="nav-link" href="/dangky">Đăng ký</a></li>
+                                <li class="nav-item"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
                                 <% } %>
                     </ul>
                 </div>
-            </nav>
-        </div>
+            </div>
+        </nav>
     </header>
     <div class="container mt-5">
         <h2>Thêm Sân Bóng</h2>
-        <form id="addSanbongForm" class="needs-validation" novalidate>
+        <form id="addSanbongForm" action="/api/sanbong" method="post" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="name" class="form-label">Tên sân bóng</label>
                 <input type="text" class="form-control" id="name" name="name" required>
@@ -90,7 +98,7 @@
             </div>
             <div class="mb-3">
                 <label for="images" class="form-label">Hình ảnh</label>
-                <input type="text" class="form-control" id="images" name="images" placeholder="img1.jpg,img2.jpg">
+                <input type="file" class="form-control" id="images" name="images" multiple>
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">Mô tả</label>
@@ -110,6 +118,16 @@
                 <input type="checkbox" class="form-check-input" id="manualCoords" onchange="toggleCoordsInput()">
                 <label class="form-check-label" for="manualCoords">Nhập tọa độ thủ công</label>
             </div>
+            <label for="owner_id">Chủ sân</label>
+            <select name="owner_id" id="owner_id" required>
+                <% owners.forEach(function(owner) { %>
+                    <option value="<%= owner.id %>">
+                        <%= owner.username %>
+                    </option>
+                    <% }) %>
+            </select>
+
+
             <div id="ban_do" style="height: 400px;"></div>
             <button type="submit" class="btn btn-primary mt-3">Thêm sân bóng</button>
         </form>

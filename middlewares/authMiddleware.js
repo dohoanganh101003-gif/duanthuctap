@@ -32,6 +32,7 @@ const checkAdmin = (req, res, next) => {
 };
 
 // Chỉ chủ sân mới được quyền, và phải đúng sân họ sở hữu
+// Chỉ chủ sân mới được quyền, và phải đúng sân họ sở hữu
 const checkOwner = async (req, res, next) => {
   try {
     if (req.user?.role !== "owner") {
@@ -39,22 +40,45 @@ const checkOwner = async (req, res, next) => {
     }
 
     const pool = req.app.locals.pool;
-    const fieldId = req.body.field_id || req.params.field_id || req.params.id;
+    let fieldId = req.body.field_id || req.params.field_id;
+    const bookingId = req.params.id;
 
-    if (!fieldId) {
-      return res.status(400).json({ error: "Thiếu field_id" });
+    // Nếu có field_id truyền trực tiếp thì kiểm tra theo field_id
+    if (fieldId) {
+      const result = await pool.query(
+        "SELECT id FROM fields WHERE id = $1 AND owner_id = $2",
+        [fieldId, req.user.user_id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(403).json({ error: "Bạn không phải chủ sân này" });
+      }
+      return next();
     }
 
-    const result = await pool.query(
-      "SELECT id FROM fields WHERE id = $1 AND owner_id = $2",
-      [fieldId, req.user.user_id]
-    );
+    // Nếu không có field_id mà chỉ có bookingId → kiểm tra thông qua bảng booking
+    if (bookingId) {
+      const check = await pool.query(
+        `SELECT f.owner_id
+         FROM booking b
+         JOIN sub_fields sf ON b.sub_field_id = sf.id
+         JOIN fields f ON sf.field_id = f.id
+         WHERE b.id = $1`,
+        [bookingId]
+      );
 
-    if (result.rows.length === 0) {
-      return res.status(403).json({ error: "Bạn không phải chủ sân này" });
+      if (check.rows.length === 0) {
+        return res.status(404).json({ error: "Booking không tồn tại" });
+      }
+
+      if (check.rows[0].owner_id !== req.user.user_id) {
+        return res.status(403).json({ error: "Bạn không phải chủ sân này" });
+      }
+      return next();
     }
 
-    next();
+    return res
+      .status(400)
+      .json({ error: "Thiếu thông tin để xác minh chủ sân" });
   } catch (err) {
     console.error("Lỗi checkOwner:", err);
     res.status(500).json({ error: "Lỗi server khi kiểm tra chủ sân" });

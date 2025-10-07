@@ -5,143 +5,164 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Sân Bóng</title>
+
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
     <link rel="stylesheet" href="/trangchu.css">
-
 </head>
 
+
 <body>
-    <header class="main-header bg-primary text-white p-3">
-        <div class="header-content">
-            <h1 class="site-title">Quản Lý Sân Bóng</h1>
-            <nav class="navbar navbar-expand-lg navbar-light bg-light mt-3">
+    <% function translateSurface(type) { const t=(type || "" ).toString().toLowerCase(); if (t==="artificial" )
+        return "Cỏ nhân tạo" ; if (t==="grass" ) return "Cỏ tự nhiên" ; if (t==="indoor" ) return "Sân trong nhà" ;
+        return "Chưa có dữ liệu" ; } %>
+        <header class="main-header shadow-sm">
+            <nav class="navbar navbar-expand-lg navbar-dark py-3">
                 <div class="container-fluid">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <a class="nav-link active" href="/">Trang chủ</a>
-                        <a class="nav-item nav-link active" href="/lichsu_datsan">Lịch sử đặt sân</a>
-
-
-                        <% if (session.role==='admin' ) { %>
-                            <a class="nav-item nav-link active" href="/danhsach-dichvu">Danh sách dịch vụ</a>
-                            <a class="nav-item nav-link active" href="/them_sanbong">Thêm sân bóng</a>
-                            <a class="nav-item nav-link active" href="/them_dichvu">Thêm dịch vụ</a>
-                            <a class="nav-item nav-link active" href="/quanly_datsan">Quản lý đặt sân</a>
-                            <% } %>
-                    </ul>
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <% if (session.user_id) { %>
-                            <li class="nav-item"><a class="nav-link" href="/dangxuat">Đăng xuất</a></li>
-                            <% } else { %>
-                                <li class="nav-item"><a class="nav-link" href="/dangnhap">Đăng nhập</a></li>
-                                <li class="nav-item"><a class="nav-link" href="/dangky">Đăng ký</a></li>
+                    <a class="navbar-brand fw-bold text-white" href="/">Quản Lý Sân Bóng</a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarContent">
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item"><a class="nav-link text-white" href="/">Trang chủ</a></li>
+                            <li class="nav-item"><a class="nav-link text-white" href="/lichsu_datsan">Lịch sử đặt
+                                    sân</a></li>
+                            <% if (session.role==='admin' ) { %>
+                                <li class="nav-item"><a class="nav-link text-white" href="/danhsach-dichvu">Dịch vụ</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link text-white" href="/them_sanbong">Thêm sân</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link text-white" href="/them_dichvu">Thêm dịch vụ</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link text-white" href="/quanly_datsan">Quản lý đặt
+                                        sân</a></li>
                                 <% } %>
-                    </ul>
+                        </ul>
+
+                        <ul class="navbar-nav ml-auto">
+                            <% if (session.user_id) { %>
+                                <li class="nav-item"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
+                                <% } else { %>
+                                    <li class="nav-item"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
+                                    </li>
+                                    <li class="nav-item"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
+                                    <% } %>
+                        </ul>
+                    </div>
                 </div>
             </nav>
-        </div>
-    </header>
+        </header>
+
+        <section class="search-section bg-light py-4 shadow-sm">
+            <div class="container text-center">
+                <h2 class="mb-4">Tìm kiếm sân bóng</h2>
+                <div class="input-group mb-3 justify-content-center" style="max-width: 700px; margin: 0 auto;">
+                    <input type="text" id="search-input" class="form-control" placeholder="Nhập tên sân bóng...">
+                    <div class="input-group-append">
+                        <button id="search-button" class="btn btn-primary">Tìm kiếm</button>
+                        <button id="nearby-button" class="btn btn-primary">Gần tôi</button>
+                        <button id="toggle-view" class="btn toggle-btn">Xem danh sách</button>
+                    </div>
+                </div>
+                <div id="search-history" class="d-flex flex-wrap justify-content-center mt-2"></div>
+            </div>
+        </section>
+
+        <div id="map"></div>
 
 
-    <div class="page-container">
-        <h2>Tìm kiếm sân bóng</h2>
-        <div class="search-container">
-            <input type="text" id="search-input" class="form-control d-inline-block w-auto"
-                placeholder="Nhập tên sân bóng...">
-            <button id="search-button" class="btn btn-primary search-button">Tìm kiếm</button>
-            <button id="nearby-button" class="btn btn-primary nearby-button">Tìm vị trí gần nhất</button>
-        </div>
-
-        <div id="search-history" class="search-history"></div>
-    </div>
-    <div id="map"></div>
-
-
-    <h2>Danh sách sân bóng</h2>
-    <div class="table-container">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Tên sân</th>
-                    <th>Địa chỉ</th>
-                    <th>Điện thoại</th>
-                    <th>Giờ mở cửa</th>
-                    <th>Giờ đóng cửa</th>
-                    <th>Loại sân</th>
-                    <th>Giá tiền</th>
-                    <th>Sân con</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% fields.forEach(field=> {
-                    const subs = (field.subFields && field.subFields.length > 0)
-                    ? field.subFields
-                    : [null];
-                    %>
-                    <% subs.forEach(sub=> { %>
+        <div id="stadium-list" style="display:none;">
+            <h2>Danh sách sân bóng</h2>
+            <div class="table-container">
+                <table class="table table-striped">
+                    <thead>
                         <tr>
-                            <td>
-                                <%= field.name %>
-                            </td>
-                            <td>
-                                <%= field.address %>
-                            </td>
-                            <td>
-                                <%= field.phone %>
-                            </td>
-                            <td>
-                                <%= field.open_time %>
-                            </td>
-                            <td>
-                                <%= field.close_time %>
-                            </td>
-                            <td>
-                                <%= field.surface_type || "Chưa có dữ liệu" %>
-                            </td>
-                            <td>
-                                <%= field.price_per_hour || "Chưa có dữ liệu" %>
-                            </td>
-                            <td>
-                                <% if (sub) { %>
-                                    <span>
-                                        <%= sub.name %> (<%= sub.size %>)
-                                    </span>
-                                    <% } else { %>
-                                        <span>Chưa có sân con</span>
-                                        <% } %>
-                            </td>
-                            <td>
-                                <a href="/xem_dichvu/<%= field.id %>" class="btn btn-primary btn-sm">Xem dịch vụ</a>
-                                <a href="/dat-san?field_id=<%= field.id %>" class="btn btn-success btn-sm">Đặt sân</a>
-                                <% if (session.role==='admin' ) { %>
-                                    <a href="/sua_sanbong/<%= field.id %>" class="btn btn-warning btn-sm">Sửa</a>
-                                    <button class="btn btn-danger btn-sm"
-                                        onclick="window.deleteSanbong(<%= field.id %>)">Xóa</button>
-                                    <% } %>
-                            </td>
+                            <th>Tên sân</th>
+                            <th>Địa chỉ</th>
+                            <th>Điện thoại</th>
+                            <th>Giờ mở cửa</th>
+                            <th>Giờ đóng cửa</th>
+                            <th>Loại sân</th>
+                            <th>Giá tiền</th>
+                            <th>Sân con</th>
+                            <th>Hành động</th>
                         </tr>
-                        <% }) %>
-                            <% }) %>
-            </tbody>
-        </table>
-    </div>
+                    </thead>
+                    <tbody>
+                        <% fields.forEach(field=> {
+                            const subs = (field.subFields && field.subFields.length > 0)
+                            ? field.subFields
+                            : [null];
+                            %>
+                            <% subs.forEach(sub=> { %>
+                                <tr>
+                                    <td>
+                                        <%= field.name %>
+                                    </td>
+                                    <td>
+                                        <%= field.address %>
+                                    </td>
+                                    <td>
+                                        <%= field.phone %>
+                                    </td>
+                                    <td>
+                                        <%= field.open_time %>
+                                    </td>
+                                    <td>
+                                        <%= field.close_time %>
+                                    </td>
+                                    <td>
+                                        <%= translateSurface(field.surface_type) %>
+                                    </td>
+                                    <td>
+                                        <%= field.price_per_hour || "Chưa có dữ liệu" %>
+                                    </td>
+                                    <td>
+                                        <% if (sub) { %>
+                                            <span>
+                                                <%= sub.name %> (<%= sub.size %>)
+                                            </span>
+                                            <% } else { %>
+                                                <span>Chưa có sân con</span>
+                                                <% } %>
+                                    </td>
+                                    <td>
+                                        <a href="/xem_dichvu/<%= field.id %>" class="btn btn-primary btn-sm">Xem dịch
+                                            vụ</a>
+                                        <a href="/dat-san?field_id=<%= field.id %>" class="btn btn-success btn-sm">Đặt
+                                            sân</a>
+                                        <% if (session.role==='admin' ) { %>
+                                            <a href="/sua_sanbong/<%= field.id %>"
+                                                class="btn btn-warning btn-sm">Sửa</a>
+                                            <button class="btn btn-danger btn-sm"
+                                                onclick="window.deleteSanbong(<%= field.id %>)">Xóa</button>
+                                            <% } %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-    <script>
-        window.currentRole = "<%= session.role %>";
-    </script>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+        <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+        <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+        <script>
+            window.currentRole = "<%= session.role %>";
+        </script>
 
-    <script src="/scripts/map.js" defer></script>
+        <script src="/scripts/map.js" defer></script>
 </body>
 
 </html>

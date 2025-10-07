@@ -54,6 +54,7 @@ window.onload = () => {
         const openTime = form.querySelector("#open_time").value;
         const closeTime = form.querySelector("#close_time").value;
         const pricePerHour = form.querySelector("#price_per_hour").value;
+
         if (
           openTime &&
           closeTime &&
@@ -68,6 +69,7 @@ window.onload = () => {
         } else {
           form.querySelector("#close_time").setCustomValidity("");
         }
+
         if (pricePerHour && parseFloat(pricePerHour) < 0) {
           event.preventDefault();
           event.stopPropagation();
@@ -77,6 +79,7 @@ window.onload = () => {
         } else {
           form.querySelector("#price_per_hour").setCustomValidity("");
         }
+
         form.classList.add("was-validated");
       },
       false
@@ -84,6 +87,7 @@ window.onload = () => {
   });
 };
 
+// Thêm sân bóng
 const addForm = document.getElementById("addSanbongForm");
 if (addForm) {
   addForm.addEventListener("submit", async (e) => {
@@ -92,20 +96,18 @@ if (addForm) {
       addForm.classList.add("was-validated");
       return;
     }
+
     const formData = new FormData(addForm);
-    const data = Object.fromEntries(formData);
-    data.images = data.images
-      ? JSON.stringify(data.images.split(",").map((img) => img.trim()))
-      : JSON.stringify([]);
+
     try {
       const response = await fetch("/api/sanbong", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
-        body: JSON.stringify(data),
+        body: formData, // ✅ Gửi FormData để Multer nhận được file
       });
+
       if (response.ok) {
         alert("Thêm sân bóng thành công!");
         window.location.href = "/";
@@ -120,39 +122,185 @@ if (addForm) {
   });
 }
 
+// Sửa sân bóng
+// ================== SỬA SÂN BÓNG ==================
 const editForm = document.getElementById("editSanbongForm");
 if (editForm) {
   editForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    // Kiểm tra hợp lệ cơ bản
     if (!editForm.checkValidity()) {
       editForm.classList.add("was-validated");
       return;
     }
+
+    // Lấy id sân bóng
+    const idInput = editForm.querySelector('input[name="sanbong_id"]');
+    if (!idInput || !idInput.value) {
+      alert("Không tìm thấy ID sân bóng!");
+      return;
+    }
+    const id = idInput.value;
+
+    // Tạo FormData (bao gồm file ảnh nếu có)
     const formData = new FormData(editForm);
-    const data = Object.fromEntries(formData);
-    data.images = data.images
-      ? JSON.stringify(data.images.split(",").map((img) => img.trim()))
-      : JSON.stringify([]);
-    const id = data.sanbong_id;
+
     try {
+      console.log("🔄 Gửi request PUT tới:", `/api/sanbong/${id}`);
+
       const response = await fetch(`/api/sanbong/${id}`, {
-        method: "POST",
+        method: "PUT",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+        body: formData, // ✅ Gửi trực tiếp FormData (để Multer xử lý)
+      });
+
+      if (response.ok) {
+        alert("✅ Cập nhật sân bóng thành công!");
+        window.location.href = "/";
+      } else {
+        const error = await response.json();
+        alert(
+          "❌ Lỗi khi cập nhật sân bóng: " +
+            (error.error || "Không rõ nguyên nhân")
+        );
+      }
+    } catch (err) {
+      console.error("💥 Lỗi khi cập nhật sân bóng:", err);
+      alert("❌ Lỗi máy chủ khi cập nhật sân bóng!");
+    }
+  });
+}
+
+// ================= QUẢN LÝ SÂN CON =================
+
+// Lấy id sân chính (field_id)
+const fieldIdInput =
+  document.querySelector('input[name="sanbong_id"]') ||
+  document.querySelector('input[name="field_id"]');
+const fieldId = fieldIdInput ? fieldIdInput.value : null;
+
+if (fieldId) {
+  const subTable = document.getElementById("subFieldsTable");
+  const subForm = document.getElementById("addSubFieldForm");
+
+  // Hàm tải danh sách sân con
+  async function loadSubFields() {
+    try {
+      const res = await fetch(`/api/sancon/${fieldId}`);
+      const data = await res.json();
+
+      if (!subTable) return;
+      if (data.length === 0) {
+        subTable.innerHTML = `<tr><td colspan="4" class="text-center">Chưa có sân con nào</td></tr>`;
+        return;
+      }
+
+      subTable.innerHTML = data
+        .map(
+          (s) => `
+        <tr id="row-${s.id}">
+          <td><span class="sf-name">${s.name}</span></td>
+          <td><span class="sf-size">${s.size}</span></td>
+          <td>
+            <button class="btn btn-warning btn-sm" onclick="editSubField(${s.id}, '${s.name}', '${s.size}')">Sửa</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSubField(${s.id})">Xóa</button>
+          </td>
+        </tr>
+      `
+        )
+        .join("");
+    } catch (err) {
+      console.error("Lỗi tải sân con:", err);
+    }
+  }
+
+  // Thêm sân con
+  if (subForm) {
+    subForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(subForm);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const res = await fetch("/api/sancon", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          alert("Thêm sân con thành công!");
+          subForm.reset();
+          loadSubFields();
+        } else {
+          const err = await res.json();
+          alert(err.error || "Lỗi khi thêm sân con!");
+        }
+      } catch (err) {
+        console.error("Lỗi khi thêm sân con:", err);
+      }
+    });
+  }
+
+  // Xóa sân con
+  window.deleteSubField = async function (id) {
+    if (!confirm("Bạn có chắc muốn xóa sân con này không?")) return;
+    try {
+      const res = await fetch(`/api/sancon/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+      });
+      if (res.ok) {
+        alert("Xóa sân con thành công!");
+        loadSubFields();
+      } else {
+        const err = await res.json();
+        alert(err.error || "Lỗi khi xóa sân con!");
+      }
+    } catch (err) {
+      console.error("Lỗi khi xóa sân con:", err);
+    }
+  };
+
+  // Sửa sân con
+  window.editSubField = async function (id, currentName, currentSize) {
+    // Tạo prompt nhập thông tin mới
+    const newName = prompt("Nhập tên sân con mới:", currentName);
+    if (newName === null) return;
+    const newSize = prompt(
+      "Nhập kích thước mới (5x5, 7x7, 11x11):",
+      currentSize
+    );
+    if (newSize === null) return;
+
+    try {
+      const res = await fetch(`/api/sancon/${id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ name: newName, size: newSize }),
       });
-      if (response.ok) {
-        alert("Cập nhật sân bóng thành công!");
-        window.location.href = "/";
+
+      if (res.ok) {
+        alert("Cập nhật sân con thành công!");
+        loadSubFields();
       } else {
-        const error = await response.json();
-        alert(error.error || "Lỗi khi cập nhật sân bóng!");
+        const err = await res.json();
+        alert(err.error || "Lỗi khi cập nhật sân con!");
       }
     } catch (err) {
-      console.error("Lỗi khi cập nhật sân bóng:", err);
-      alert("Lỗi máy chủ!");
+      console.error("Lỗi khi sửa sân con:", err);
     }
-  });
+  };
+
+  // Khi trang load, tự tải danh sách sân con
+  window.addEventListener("load", loadSubFields);
 }
