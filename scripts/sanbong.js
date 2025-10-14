@@ -105,7 +105,7 @@ if (addForm) {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
-        body: formData, // ✅ Gửi FormData để Multer nhận được file
+        body: formData,
       });
 
       if (response.ok) {
@@ -123,13 +123,10 @@ if (addForm) {
 }
 
 // Sửa sân bóng
-// ================== SỬA SÂN BÓNG ==================
 const editForm = document.getElementById("editSanbongForm");
 if (editForm) {
   editForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // Kiểm tra hợp lệ cơ bản
     if (!editForm.checkValidity()) {
       editForm.classList.add("was-validated");
       return;
@@ -142,34 +139,31 @@ if (editForm) {
       return;
     }
     const id = idInput.value;
-
     // Tạo FormData (bao gồm file ảnh nếu có)
     const formData = new FormData(editForm);
-
     try {
       console.log("🔄 Gửi request PUT tới:", `/api/sanbong/${id}`);
-
       const response = await fetch(`/api/sanbong/${id}`, {
         method: "PUT",
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
-        body: formData, // ✅ Gửi trực tiếp FormData (để Multer xử lý)
+        body: formData,
       });
 
       if (response.ok) {
-        alert("✅ Cập nhật sân bóng thành công!");
+        alert("Cập nhật sân bóng thành công!");
         window.location.href = "/";
       } else {
         const error = await response.json();
         alert(
-          "❌ Lỗi khi cập nhật sân bóng: " +
+          "Lỗi khi cập nhật sân bóng: " +
             (error.error || "Không rõ nguyên nhân")
         );
       }
     } catch (err) {
-      console.error("💥 Lỗi khi cập nhật sân bóng:", err);
-      alert("❌ Lỗi máy chủ khi cập nhật sân bóng!");
+      console.error("Lỗi khi cập nhật sân bóng:", err);
+      alert("Lỗi máy chủ khi cập nhật sân bóng!");
     }
   });
 }
@@ -270,7 +264,6 @@ if (fieldId) {
 
   // Sửa sân con
   window.editSubField = async function (id, currentName, currentSize) {
-    // Tạo prompt nhập thông tin mới
     const newName = prompt("Nhập tên sân con mới:", currentName);
     if (newName === null) return;
     const newSize = prompt(
@@ -301,6 +294,5 @@ if (fieldId) {
     }
   };
 
-  // Khi trang load, tự tải danh sách sân con
   window.addEventListener("load", loadSubFields);
 }

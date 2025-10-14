@@ -16,6 +16,18 @@ const ownerRoutes = require("./routes/owner");
 const subFieldRoutes = require("./routes/subFields");
 const app = express();
 
+app.use(
+  methodOverride(function (req, res) {
+    if (req.query && typeof req.query._method === "string") {
+      return req.query._method;
+    }
+    if (req.body && typeof req.body._method === "string") {
+      return req.body._method;
+    }
+    return undefined;
+  })
+);
+
 // Middleware
 app.use(cors());
 app.use(express.json());

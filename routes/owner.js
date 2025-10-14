@@ -1,138 +1,95 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const ownerController = require("../controllers/ownerController");
 const {
   authenticateToken,
   checkOwner,
 } = require("../middlewares/authMiddleware");
 
-// Middleware kiểm tra role owner
-function checkRoleOwner(req, res, next) {
-  if (req.user?.role !== "owner") {
-    return res.status(403).send("Chỉ chủ sân mới có quyền truy cập");
-  }
-  next();
-}
+const uploadDir = path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
-// Trang quản lý dịch vụ cho chủ sân
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + path.extname(file.originalname)),
+});
+const upload = multer({ storage, limits: { files: 5 } });
+
 router.get(
-  "/chusan_dichvu",
+  "/chusan_sanbong",
   authenticateToken,
-  checkRoleOwner,
-  async (req, res) => {
-    try {
-      const pool = req.app.locals.pool;
-
-      const result = await pool.query(
-        `SELECT s.*, f.name as field_name
-       FROM service s
-       JOIN fields f ON s.field_id = f.id
-       WHERE f.owner_id = $1`,
-        [req.user.user_id]
-      );
-
-      res.render("chusan_dichvu", {
-        services: result.rows,
-        session: req.session,
-      });
-    } catch (err) {
-      console.error("Lỗi lấy danh sách dịch vụ cho chủ sân:", err);
-      res.status(500).send("Lỗi server");
-    }
-  }
+  checkOwner,
+  ownerController.getOwnerFields
 );
-
-// Trang quản lý đặt sân
+router.get(
+  "/them-sanbong",
+  authenticateToken,
+  checkOwner,
+  ownerController.renderAddField
+);
+router.get(
+  "/sua-sanbong/:id",
+  authenticateToken,
+  checkOwner,
+  ownerController.renderEditField
+);
 router.get(
   "/chusan_datsan",
   authenticateToken,
-  checkRoleOwner,
-  async (req, res) => {
-    try {
-      const pool = req.app.locals.pool;
-      const ownerId = req.user.user_id;
-
-      const result = await pool.query(
-        `SELECT b.id, b.start_time, b.end_time, b.total_price, b.status,
-              u.username AS username,
-              sf.name AS sub_field_name,
-              f.name AS field_name
-       FROM booking b
-       JOIN users u ON b.user_id = u.id
-       JOIN sub_fields sf ON b.sub_field_id = sf.id
-       JOIN fields f ON sf.field_id = f.id
-       WHERE f.owner_id = $1
-       ORDER BY b.created_at DESC`,
-        [ownerId]
-      );
-
-      res.render("chusan_datsan", {
-        bookings: result.rows,
-        session: req.session,
-      });
-    } catch (err) {
-      console.error("Lỗi lấy danh sách booking cho chủ sân:", err);
-      res.status(500).send("Lỗi server khi lấy danh sách đặt sân");
-    }
-  }
+  checkOwner,
+  ownerController.getOwnerBookings
 );
-
-// Trang lịch sử đặt sân (đã duyệt / huỷ)
 router.get(
-  "/chusan_lichsu",
-  authenticateToken,
-  checkRoleOwner,
-  async (req, res) => {
-    try {
-      const pool = req.app.locals.pool;
-      const ownerId = req.user.user_id;
-
-      const result = await pool.query(
-        `SELECT b.id, b.start_time, b.end_time, b.total_price, b.status,
-              u.username,
-              sf.name AS sub_field_name,
-              f.name AS field_name
-       FROM booking b
-       JOIN users u ON b.user_id = u.id
-       JOIN sub_fields sf ON b.sub_field_id = sf.id
-       JOIN fields f ON sf.field_id = f.id
-       WHERE f.owner_id = $1 AND b.status IN ('confirmed','cancelled')
-       ORDER BY b.created_at DESC`,
-        [ownerId]
-      );
-
-      res.render("chusan_lichsu", {
-        history: result.rows,
-        session: req.session,
-      });
-    } catch (err) {
-      console.error("Lỗi lấy lịch sử đặt sân cho chủ sân:", err);
-      res.status(500).send("Lỗi server");
-    }
-  }
-);
-
-// API: Chủ sân cập nhật trạng thái booking (chấp nhận / từ chối)
-router.put(
-  "/chusan_booking/:id/status",
+  "/sancon/:field_id",
   authenticateToken,
   checkOwner,
-  async (req, res) => {
-    try {
-      const pool = req.app.locals.pool;
-      const { status } = req.body;
-      const bookingId = req.params.id;
+  ownerController.getSubFieldsByField
+);
 
-      await pool.query("UPDATE booking SET status = $1 WHERE id = $2", [
-        status,
-        bookingId,
-      ]);
+// API
+router.get(
+  "/api/sanbong/:id",
+  authenticateToken,
+  checkOwner,
+  ownerController.getFieldById
+);
+router.post(
+  "/api/sanbong",
+  authenticateToken,
+  checkOwner,
+  upload.array("images", 5),
+  ownerController.createField
+);
+router.put(
+  "/api/sanbong/:id",
+  authenticateToken,
+  checkOwner,
+  upload.array("images", 5),
+  ownerController.updateField
+);
+router.delete(
+  "/api/sanbong/:id",
+  authenticateToken,
+  checkOwner,
+  ownerController.deleteField
+);
 
-      res.redirect("/owner/chusan_datsan");
-    } catch (err) {
-      console.error("Lỗi cập nhật trạng thái booking:", err);
-      res.status(500).send("Lỗi server khi cập nhật trạng thái");
-    }
-  }
+// Booking API
+router.post(
+  "/api/xacnhan-datsan/:id",
+  authenticateToken,
+  checkOwner,
+  ownerController.confirmBooking
+);
+router.post(
+  "/api/huy-datsan/:id",
+  authenticateToken,
+  checkOwner,
+  ownerController.cancelBooking
 );
 
 module.exports = router;

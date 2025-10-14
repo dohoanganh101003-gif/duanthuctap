@@ -15,43 +15,45 @@
 
 <body>
     <header class="main-header shadow-sm">
-        <nav class="navbar navbar-expand-lg navbar-dark py-3">
-            <div class="container-fluid">
-                <a class="navbar-brand fw-bold text-white" href="/">Quản Lý Sân Bóng</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+        <nav class="navbar navbar-dark bg-primary py-3 d-flex align-items-center justify-content-between">
+            <button class="btn btn-outline-light btn-sm" id="sidebarToggle">
+                ☰
+            </button>
 
-                <div class="collapse navbar-collapse" id="navbarContent">
-                    <ul class="navbar-nav mr-auto">
-                        <li class="nav-item"><a class="nav-link text-white" href="/">Trang chủ</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/lichsu_datsan">Lịch sử đặt
-                                sân</a></li>
-                        <% if (session.role==='admin' ) { %>
-                            <li class="nav-item"><a class="nav-link text-white" href="/danhsach-dichvu">Dịch vụ</a>
-                            </li>
-                            <li class="nav-item"><a class="nav-link text-white" href="/them_sanbong">Thêm sân</a>
-                            </li>
-                            <li class="nav-item"><a class="nav-link text-white" href="/them_dichvu">Thêm dịch vụ</a>
-                            </li>
-                            <li class="nav-item"><a class="nav-link text-white" href="/quanly_datsan">Quản lý đặt
-                                    sân</a></li>
-                            <% } %>
-                    </ul>
+            <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
 
-                    <ul class="navbar-nav ml-auto">
-                        <% if (session.user_id) { %>
-                            <li class="nav-item"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
-                            <% } else { %>
-                                <li class="nav-item"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
-                                </li>
-                                <li class="nav-item"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
-                                <% } %>
-                    </ul>
-                </div>
-            </div>
+            <ul class="navbar-nav ml-auto flex-row">
+                <% if (session && session.user_id) { %>
+                    <li class="nav-item ml-3">
+                        <a class="nav-link text-white" href="/dangxuat">Đăng xuất</a>
+                    </li>
+                    <% } else { %>
+                        <li class="nav-item ml-3">
+                            <a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
+                        </li>
+                        <li class="nav-item ml-3">
+                            <a class="nav-link text-white" href="/dangky">Đăng ký</a>
+                        </li>
+                        <% } %>
+            </ul>
         </nav>
     </header>
+
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" id="closeSidebar">×</button>
+        <ul class="sidebar-menu list-unstyled mt-4">
+
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/lichsu_datsan">Lịch sử đặt sân</a></li>
+
+            <% if (session && session.role==='admin' ) { %>
+                <li><a href="/danhsach_sanbong" class="active">Quản lý sân bóng</a></li>
+                <li><a href="/danhsach-dichvu">Quản lý dịch vụ</a></li>
+                <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                <% } %>
+
+        </ul>
+    </div>
     <div class="container mt-5">
         <h2>Sửa Sân Bóng</h2>
         <form id="editSanbongForm" action="/api/sanbong/<%= field.id %>" method="post" enctype="multipart/form-data">
@@ -130,56 +132,18 @@
             <div id="ban_do" style="height: 400px;"></div>
             <button type="submit" class="btn btn-primary mt-3">Cập nhật sân bóng</button>
         </form>
-
-
-        <hr>
-        <h3 class="mt-5">Quản lý Sân Con</h3>
-
-        <!-- Bảng sân con -->
-        <table class="table table-bordered mt-3">
-            <thead class="thead-light">
-                <tr>
-                    <th>Tên sân con</th>
-                    <th>Kích thước</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody id="subFieldsTable"></tbody>
-        </table>
-
-        <!-- Form thêm sân con -->
-        <form id="addSubFieldForm" class="mt-4">
-            <input type="hidden" name="field_id" value="<%= field.id %>">
-            <div class="form-row align-items-end">
-                <div class="col-md-4 mb-3">
-                    <label for="subName">Tên sân con</label>
-                    <input type="text" class="form-control" id="subName" name="name" required>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label for="subSize">Kích thước</label>
-                    <select class="form-control" id="subSize" name="size" required>
-                        <option value="5x5">5x5</option>
-                        <option value="7x7">7x7</option>
-                        <option value="11x11">11x11</option>
-                    </select>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <button type="submit" class="btn btn-success btn-block">Thêm Sân Con</button>
-                </div>
-            </div>
-        </form>
-
     </div>
 
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="/scripts/sanbong.js" defer></script>
+    <script src="/scripts/sidebar.js" defer></script>
+
 </body>
 
 </html>

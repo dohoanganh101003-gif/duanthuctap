@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Sân Bóng</title>
-
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -14,63 +13,62 @@
     <link rel="stylesheet" href="/trangchu.css">
 </head>
 
-
 <body>
     <% function translateSurface(type) { const t=(type || "" ).toString().toLowerCase(); if (t==="artificial" )
         return "Cỏ nhân tạo" ; if (t==="grass" ) return "Cỏ tự nhiên" ; if (t==="indoor" ) return "Sân trong nhà" ;
         return "Chưa có dữ liệu" ; } %>
         <header class="main-header shadow-sm">
-            <nav class="navbar navbar-expand-lg navbar-dark py-3">
-                <div class="container-fluid">
-                    <a class="navbar-brand fw-bold text-white" href="/">Quản Lý Sân Bóng</a>
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbarContent">
-                        <ul class="navbar-nav mr-auto">
-                            <li class="nav-item"><a class="nav-link text-white" href="/">Trang chủ</a></li>
-                            <li class="nav-item"><a class="nav-link text-white" href="/lichsu_datsan">Lịch sử đặt
-                                    sân</a></li>
-                            <% if (session.role==='admin' ) { %>
-                                <li class="nav-item"><a class="nav-link text-white" href="/danhsach-dichvu">Dịch vụ</a>
-                                </li>
-                                <li class="nav-item"><a class="nav-link text-white" href="/them_sanbong">Thêm sân</a>
-                                </li>
-                                <li class="nav-item"><a class="nav-link text-white" href="/them_dichvu">Thêm dịch vụ</a>
-                                </li>
-                                <li class="nav-item"><a class="nav-link text-white" href="/quanly_datsan">Quản lý đặt
-                                        sân</a></li>
-                                <% } %>
-                        </ul>
+            <nav class="navbar navbar-dark bg-primary">
+                <button class="btn btn-outline-light btn-sm" id="sidebarToggle">☰</button>
 
-                        <ul class="navbar-nav ml-auto">
-                            <% if (session.user_id) { %>
-                                <li class="nav-item"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
-                                <% } else { %>
-                                    <li class="nav-item"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
-                                    </li>
-                                    <li class="nav-item"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
-                                    <% } %>
-                        </ul>
+                <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
+
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" id="search-input" class="form-control" placeholder="Nhập tên sân bóng...">
+                        <div class="input-group-append">
+                            <button id="search-button" class="btn btn-primary">Tìm kiếm</button>
+                            <button id="nearby-button" class="btn btn-primary">Gần tôi</button>
+                            <button id="toggle-view" class="btn toggle-btn">Xem danh sách</button>
+                        </div>
                     </div>
+                    <div id="search-history"></div>
                 </div>
+
+                <ul class="navbar-nav ml-auto flex-row">
+                    <% if (session && session.user_id) { %>
+                        <li class="nav-item ml-3">
+                            <a class="nav-link text-white" href="/dangxuat">Đăng xuất</a>
+                        </li>
+                        <% } else { %>
+                            <li class="nav-item ml-3">
+                                <a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
+                            </li>
+                            <li class="nav-item ml-3">
+                                <a class="nav-link text-white" href="/dangky">Đăng ký</a>
+                            </li>
+                            <% } %>
+                </ul>
             </nav>
         </header>
 
-        <section class="search-section bg-light py-4 shadow-sm">
-            <div class="container text-center">
-                <h2 class="mb-4">Tìm kiếm sân bóng</h2>
-                <div class="input-group mb-3 justify-content-center" style="max-width: 700px; margin: 0 auto;">
-                    <input type="text" id="search-input" class="form-control" placeholder="Nhập tên sân bóng...">
-                    <div class="input-group-append">
-                        <button id="search-button" class="btn btn-primary">Tìm kiếm</button>
-                        <button id="nearby-button" class="btn btn-primary">Gần tôi</button>
-                        <button id="toggle-view" class="btn toggle-btn">Xem danh sách</button>
-                    </div>
-                </div>
-                <div id="search-history" class="d-flex flex-wrap justify-content-center mt-2"></div>
-            </div>
-        </section>
+
+        <div id="sidebar" class="sidebar">
+            <button class="close-btn" id="closeSidebar">×</button>
+            <ul class="sidebar-menu list-unstyled mt-4">
+
+                <li><a href="/" class="active">Trang chủ</a></li>
+                <li><a href="/lichsu_datsan">Lịch sử đặt sân</a></li>
+
+                <% if (session && session.role==='admin' ) { %>
+                    <li><a href="/danhsach_sanbong">Quản lý sân bóng</a></li>
+                    <li><a href="/danhsach-dichvu">Quản lý dịch vụ</a></li>
+                    <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                    <% } %>
+
+            </ul>
+        </div>
+
 
         <div id="map"></div>
 
@@ -131,16 +129,20 @@
                                                 <% } %>
                                     </td>
                                     <td>
-                                        <a href="/xem_dichvu/<%= field.id %>" class="btn btn-primary btn-sm">Xem dịch
-                                            vụ</a>
-                                        <a href="/dat-san?field_id=<%= field.id %>" class="btn btn-success btn-sm">Đặt
-                                            sân</a>
-                                        <% if (session.role==='admin' ) { %>
-                                            <a href="/sua_sanbong/<%= field.id %>"
-                                                class="btn btn-warning btn-sm">Sửa</a>
-                                            <button class="btn btn-danger btn-sm"
-                                                onclick="window.deleteSanbong(<%= field.id %>)">Xóa</button>
-                                            <% } %>
+                                        <div class="action-buttons">
+                                            <a href="/xem_dichvu/<%= field.id %>" class="btn btn-primary btn-sm">Xem
+                                                dịch
+                                                vụ</a>
+                                            <a href="/dat-san?field_id=<%= field.id %>"
+                                                class="btn btn-success btn-sm">Đặt
+                                                sân</a>
+                                            <% if (session.role==='admin' ) { %>
+                                                <a href="/sua_sanbong/<%= field.id %>"
+                                                    class="btn btn-warning btn-sm">Sửa</a>
+                                                <button class="btn btn-danger btn-sm"
+                                                    onclick="window.deleteSanbong(<%= field.id %>)">Xóa</button>
+                                                <% } %>
+                                        </div>
                                     </td>
                                 </tr>
                                 <% }) %>
@@ -163,6 +165,8 @@
         </script>
 
         <script src="/scripts/map.js" defer></script>
+        <script src="/scripts/sidebar.js" defer></script>
+
 </body>
 
 </html>

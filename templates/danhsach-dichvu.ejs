@@ -15,46 +15,52 @@
 
 <body>
     <header class="main-header shadow-sm">
-        <nav class="navbar navbar-expand-lg navbar-dark py-3">
-            <div class="container-fluid">
-                <a class="navbar-brand fw-bold text-white" href="/">Quản Lý Sân Bóng</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+        <nav class="navbar navbar-dark bg-primary py-3 d-flex align-items-center justify-content-between">
+            <button class="btn btn-outline-light btn-sm" id="sidebarToggle">
+                ☰
+            </button>
 
-                <div class="collapse navbar-collapse" id="navbarContent">
-                    <ul class="navbar-nav mr-auto">
-                        <li class="nav-item"><a class="nav-link text-white" href="/">Trang chủ</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/lichsu_datsan">Lịch sử đặt
-                                sân</a></li>
-                        <% if (session.role==='admin' ) { %>
-                            <li class="nav-item"><a class="nav-link text-white" href="/danhsach-dichvu">Dịch vụ</a>
-                            </li>
-                            <li class="nav-item"><a class="nav-link text-white" href="/them_sanbong">Thêm sân</a>
-                            </li>
-                            <li class="nav-item"><a class="nav-link text-white" href="/them_dichvu">Thêm dịch vụ</a>
-                            </li>
-                            <li class="nav-item"><a class="nav-link text-white" href="/quanly_datsan">Quản lý đặt
-                                    sân</a></li>
-                            <% } %>
-                    </ul>
+            <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
 
-                    <ul class="navbar-nav ml-auto">
-                        <% if (session.user_id) { %>
-                            <li class="nav-item"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
-                            <% } else { %>
-                                <li class="nav-item"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
-                                </li>
-                                <li class="nav-item"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
-                                <% } %>
-                    </ul>
-                </div>
-            </div>
+            <ul class="navbar-nav ml-auto flex-row">
+                <% if (session && session.user_id) { %>
+                    <li class="nav-item ml-3">
+                        <a class="nav-link text-white" href="/dangxuat">Đăng xuất</a>
+                    </li>
+                    <% } else { %>
+                        <li class="nav-item ml-3">
+                            <a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
+                        </li>
+                        <li class="nav-item ml-3">
+                            <a class="nav-link text-white" href="/dangky">Đăng ký</a>
+                        </li>
+                        <% } %>
+            </ul>
         </nav>
     </header>
 
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" id="closeSidebar">×</button>
+        <ul class="sidebar-menu list-unstyled mt-4">
+
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/lichsu_datsan">Lịch sử đặt sân</a></li>
+
+            <% if (session && session.role==='admin' ) { %>
+                <li><a href="/danhsach_sanbong">Quản lý sân bóng</a></li>
+                <li><a href="/danhsach-dichvu" class="active">Quản lý dịch vụ</a></li>
+                <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                <% } %>
+
+        </ul>
+    </div>
+
     <main class="container mt-4">
-        <h2>Danh sách dịch vụ</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Danh sách dịch vụ</h2>
+
+            <a href="/them_dichvu" class="btn btn-success">+ Thêm dịch vụ</a>
+        </div>
         <div class="table-container">
             <table class="table table-bordered table-striped">
                 <thead class="thead-dark">
@@ -78,8 +84,9 @@
                                 <%= service.description || 'Không có mô tả' %>
                             </td>
                             <td>
-                                <%= Number(service.price).toLocaleString("vi-VN") %>
+                                <%= Math.round(Number(service.price)).toLocaleString("vi-VN") %>
                             </td>
+
                             <td>
                                 <%= service.field_name %>
                             </td>
@@ -117,6 +124,8 @@
         }
     </script>
     <script src="/scripts/dichvu.js"></script>
+    <script src="/scripts/sidebar.js" defer></script>
+
 
 </body>
 

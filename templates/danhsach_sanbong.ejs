@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Danh sách sân bóng - Admin</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/trangchu.css" />
+</head>
+
+<body>
+    <header class="main-header shadow-sm">
+        <nav class="navbar navbar-dark bg-primary py-3 d-flex align-items-center justify-content-between">
+            <button class="btn btn-outline-light btn-sm" id="sidebarToggle">☰</button>
+            <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
+
+            <ul class="navbar-nav ml-auto flex-row">
+                <% if (session && session.user_id) { %>
+                    <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
+                    <% } else { %>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a></li>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
+                        <% } %>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- SIDEBAR ADMIN -->
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" id="closeSidebar">×</button>
+        <ul class="sidebar-menu list-unstyled mt-4">
+
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/lichsu_datsan">Lịch sử đặt sân</a></li>
+
+            <% if (session && session.role==='admin' ) { %>
+                <li><a href="/danhsach_sanbong" class="active">Quản lý sân bóng</a></li>
+                <li><a href="/danhsach-dichvu">Quản lý dịch vụ</a></li>
+                <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                <% } %>
+
+        </ul>
+    </div>
+
+    <main class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Danh sách sân bóng</h2>
+            <a href="/them_sanbong" class="btn btn-success">+ Thêm sân bóng</a>
+        </div>
+
+        <% if (fields && fields.length> 0) { %>
+            <div class="table-container">
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Tên sân</th>
+                            <th>Chủ sân</th>
+                            <th>Địa chỉ</th>
+                            <th>Giờ mở - đóng</th>
+                            <th>Giá/giờ</th>
+                            <th>Loại sân</th>
+                            <th>Ảnh</th>
+                            <th>Sân con</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% fields.forEach(field=> { %>
+                            <tr>
+                                <td>
+                                    <%= field.name %>
+                                </td>
+                                <td>
+                                    <%= field.owner_username || 'N/A' %>
+                                </td>
+                                <td>
+                                    <%= field.address %>
+                                </td>
+                                <td>
+                                    <% const formatTime=(t)=> {
+                                        if (!t) return '';
+                                        const d = new Date(`1970-01-01T${t}`);
+                                        if (isNaN(d)) return t.substring(0,5);
+                                        return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit',
+                                        hour12: false });
+                                        }; %>
+                                        <% if (field.open_time && field.close_time) { %>
+                                            <%= formatTime(field.open_time) %> - <%= formatTime(field.close_time) %>
+                                                    <% } else { %>
+                                                        <span class="text-muted">Chưa thiết lập</span>
+                                                        <% } %>
+                                </td>
+                                <td>
+                                    <%= field.price_per_hour ?
+                                        Math.round(Number(field.price_per_hour)).toLocaleString('vi-VN') : 'N/A' %>
+                                </td>
+                                <td>
+                                    <% if (field.surface_type==='artificial' ) { %>Cỏ nhân tạo
+                                        <% } else if (field.surface_type==='grass' ) { %>Cỏ tự nhiên
+                                            <% } else if (field.surface_type==='indoor' ) { %>Sân trong nhà
+                                                <% } else { %><span class="text-muted">Không rõ</span>
+                                                    <% } %>
+                                </td>
+                                <td>
+                                    <% if (field.images && field.images.length> 0) { %>
+                                        <img src="<%= field.images[0] %>" class="thumb" alt="ảnh sân" />
+                                        <% } else { %>
+                                            <span class="text-muted">Chưa có</span>
+                                            <% } %>
+                                </td>
+                                <td>
+                                    <% if (field.subFields && field.subFields.length> 0) { %>
+                                        <%= field.subFields.map(sf=> sf.name + ' (' + sf.size + ')').join(', ') %>
+                                            <% } else { %>
+                                                <span class="text-muted">Chưa có</span>
+                                                <% } %>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a class="btn btn-primary btn-sm" href="/sua-sanbong/<%= field.id %>">Sửa</a>
+                                        <a class="btn btn-info btn-sm" href="/sancon/<%= field.id %>">Sân con</a>
+                                        <button class="btn btn-danger btn-sm btn-delete"
+                                            data-id="<%= field.id %>">Xóa</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+                <div class="alert alert-info text-center">Hiện chưa có sân bóng nào trong hệ thống.</div>
+                <% } %>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="/scripts/sanbong.js" defer></script>
+    <script src="/scripts/sidebar.js" defer></script>
+</body>
+
+</html>

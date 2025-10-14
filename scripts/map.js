@@ -144,7 +144,7 @@ function displaySanbongList(data) {
     data.type === "FeatureCollection" &&
     Array.isArray(data.features)
   ) {
-    fields = data.features.map((feature) => feature.properties); // Dữ liệu GeoJSON từ API
+    fields = data.features.map((feature) => feature.properties); 
   } else {
     console.error("Dữ liệu không hợp lệ hoặc rỗng:", data);
     fields = [];
@@ -226,46 +226,55 @@ function displaySanbongOnMap(geoJSON) {
              </div>`
           : "";
       layer.bindPopup(`
-        <div class="popup-container">
-        <h3 class="popup-title">${props.name || "N/A"}</h3>
-        <p class="popup-address"><i class="fa-solid fa-location-dot"></i> ${
-          props.address || "N/A"
-        }</p>
-        <p class="popup-phone"><i class="fa-solid fa-phone"></i> ${
-          props.phone || "N/A"
-        }</p>
-        <p class="popup-time"><i class="fa-solid fa-clock"></i> ${formatTime(
-          props.open_time
-        )} - ${formatTime(props.close_time)}</p>
-         <p class="popup-price"><i class="fa-solid fa-money-bill"></i> ${
-           props.price_per_hour
-             ? props.price_per_hour.toLocaleString("vi-VN") + " VNĐ"
-             : "N/A"
+         <div class="popup-wrapper">
+         <h5 class="popup-title">${props.name || "N/A"}</h5>
+         <p class="popup-address"><i class="fa fa-location-dot"></i> ${
+           props.address || "N/A"
          }</p>
-         <p class="popup-surface"><i class="fa-solid fa-layer-group"></i> ${translateSurfaceType(
-           props.surface_type
-         )}</p>
-        <p class="popup-description"><i class="fa-solid fa-pen"></i> ${
-          props.description || "N/A"
-        }</p>
-         ${imageHtml}
-         <div class="popup-footer">
-          <a href="/xem_dichvu/${
-            props.id || ""
-          }" class="btn btn-primary btn-sm">Xem dịch vụ</a>
-           <button class="btn btn-primary btn-sm" onclick="window.getDirections(${
+         <p class="popup-phone"><i class="fa fa-phone"></i> ${
+           props.phone || "N/A"
+         }</p>
+          <p class="popup-time"><i class="fa fa-clock"></i> ${formatTime(
+            props.open_time
+          )} - ${formatTime(props.close_time)}</p>
+          <p class="popup-price"><i class="fa fa-money-bill"></i> ${
+            props.price_per_hour
+              ? props.price_per_hour.toLocaleString("vi-VN") + " VNĐ"
+              : "Chưa có giá"
+          }</p>
+          <p class="popup-surface"><i class="fa fa-layer-group"></i> ${translateSurfaceType(
+            props.surface_type
+          )}</p>
+
+           ${
+             imageHtml
+               ? `<div class="popup-image-wrapper">${imageHtml}</div>`
+               : `<div class="no-image">Không có ảnh</div>`
+           }
+
+           <div class="popup-footer">
+            <a href="/xem_dichvu/${
+              props.id || ""
+            }" class="btn btn-primary btn-sm">
+            <i class="fa fa-list"></i> Dịch vụ
+           </a>
+           <button class="btn btn-success btn-sm" onclick="window.getDirections(${
              coords[1]
-           }, ${coords[0]})">Chỉ đường</button>
-         <a href="/dat-san?field_id=${
-           props.id || ""
-         }" class="btn btn-success btn-sm">Đặt sân</a>
-         <a href="https://www.google.com/maps/dir/?api=1&destination=${
-           coords[1]
-         },${coords[0]}" 
-                       target="_blank" class="btn btn-info btn-sm">
-                       Google Map
+           }, ${coords[0]})">
+            <i class="fa fa-route"></i> Chỉ đường
+         </button>
+          <a href="/dat-san?field_id=${
+            props.id || ""
+          }" class="btn btn-warning btn-sm">
+           <i class="fa fa-calendar-check"></i> Đặt sân
+           </a>
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${
+            coords[1]
+          },${coords[0]}" 
+             target="_blank" class="btn btn-info btn-sm">
+            <i class="fa fa-map"></i> Google Map
           </a>
-         </div>
+          </div>
          </div>
     `);
     },

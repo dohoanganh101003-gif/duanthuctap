@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm sân bóng - Chủ sân</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/trangchu.css">
+    <style>
+        .thumb {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-right: 6px;
+        }
+
+        #ban_do {
+            height: 400px;
+            margin-top: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="main-header shadow-sm">
+        <nav class="navbar navbar-dark bg-primary py-3 d-flex align-items-center justify-content-between">
+            <button class="btn btn-outline-light btn-sm" id="sidebarToggle">
+                ☰
+            </button>
+
+            <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
+
+            <ul class="navbar-nav ml-auto flex-row">
+                <% if (session && session.user_id) { %>
+                    <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
+                    <% } else { %>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a></li>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
+                        <% } %>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" id="closeSidebar">×</button>
+        <ul class="sidebar-menu list-unstyled mt-4">
+            <li><a href="/owner/chusan_datsan">Quản lý đặt sân</a></li>
+            <li><a href="/owner/chusan_sanbong">Quản lý sân bóng</a></li>
+            <li><a href="/owner/chusan_dichvu">Dịch vụ của tôi</a></li>
+        </ul>
+    </div>
+
+    <main class="container mt-5 mb-5">
+        <h3 class="mb-4">Thêm sân bóng mới</h3>
+
+        <form id="ownerAddForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Tên sân bóng</label>
+                <input type="text" class="form-control" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label>Địa chỉ</label>
+                <input type="text" class="form-control" name="address" required>
+            </div>
+
+            <div class="form-group">
+                <label>Số điện thoại</label>
+                <input type="text" class="form-control" name="phone">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label>Giờ mở cửa</label>
+                    <input type="time" class="form-control" name="open_time" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Giờ đóng cửa</label>
+                    <input type="time" class="form-control" name="close_time" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Giá thuê (VNĐ/giờ)</label>
+                <input type="number" class="form-control" name="price_per_hour" min="0" step="1000" required>
+            </div>
+
+            <div class="form-group">
+                <label>Loại mặt sân</label>
+                <select class="form-control" name="surface_type" required>
+                    <option value="">-- Chọn loại sân --</option>
+                    <option value="artificial">Cỏ nhân tạo</option>
+                    <option value="grass">Cỏ tự nhiên</option>
+                    <option value="indoor">Sân trong nhà</option>
+                </select>
+            </div>
+
+            <div class="form-group mt-4">
+                <label>Hình ảnh sân bóng (tối đa 5 ảnh)</label>
+                <input type="file" class="form-control" id="addImagesField" name="images" multiple>
+                <div id="previewAdd" class="mt-2 d-flex flex-wrap"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Mô tả</label>
+                <textarea class="form-control" name="description" rows="3"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label>Vĩ độ</label>
+                    <input type="number" step="any" class="form-control" id="latitude" name="latitude" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Kinh độ</label>
+                    <input type="number" step="any" class="form-control" id="longitude" name="longitude" required>
+                </div>
+            </div>
+
+            <div class="form-check mb-2">
+                <input type="checkbox" class="form-check-input" id="manualCoords">
+                <label for="manualCoords" class="form-check-label">Nhập tọa độ thủ công</label>
+            </div>
+
+            <div id="ban_do"></div>
+            <button type="submit" class="btn btn-success mt-3">Thêm sân bóng</button>
+        </form>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/scripts/owner_sanbong.js" defer></script>
+    <script src="/scripts/sidebar.js" defer></script>
+
+
+
+</body>
+
+</html>

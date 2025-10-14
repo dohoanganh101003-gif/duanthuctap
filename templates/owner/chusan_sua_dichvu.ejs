@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sửa dịch vụ</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/trangchu.css" />
+</head>
+
+<body>
+
+    <header class="main-header shadow-sm">
+        <nav class="navbar navbar-dark bg-primary py-3 d-flex align-items-center justify-content-between">
+            <button class="btn btn-outline-light btn-sm" id="sidebarToggle">
+                ☰
+            </button>
+
+            <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
+
+            <ul class="navbar-nav ml-auto flex-row">
+                <% if (session && session.user_id) { %>
+                    <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
+                    <% } else { %>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a></li>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
+                        <% } %>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" id="closeSidebar">×</button>
+        <ul class="sidebar-menu list-unstyled mt-4">
+            <li><a href="/owner/chusan_datsan">Quản lý đặt sân</a></li>
+            <li><a href="/owner/chusan_sanbong">Quản lý sân bóng</a></li>
+            <li><a href="/owner/chusan_dichvu">Dịch vụ của tôi</a></li>
+        </ul>
+    </div>
+
+    <main class="container mt-4">
+        <h2>Sửa dịch vụ</h2>
+        <form method="POST" action="/owner/chusan_sua_dichvu/<%= service.id %>">
+            <input type="hidden" name="service_id" value="<%= service.id %>">
+
+            <div class="form-group">
+                <label for="name">Tên dịch vụ</label>
+                <input id="name" name="name" class="form-control" value="<%= service.name %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Mô tả</label>
+                <textarea id="description" name="description"
+                    class="form-control"><%= service.description || '' %></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="price">Giá (VNĐ)</label>
+                <input id="price" name="price" type="number" min="0" class="form-control" value="<%= service.price %>"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="field_id">Sân</label>
+                <select id="field_id" name="field_id" class="form-control" required>
+                    <% fields.forEach(f=> { %>
+                        <option value="<%= f.id %>" <%=f.id===service.field_id ? 'selected' : '' %>><%= f.name %>
+                        </option>
+                        <% }) %>
+                </select>
+            </div>
+
+            <button class="btn btn-primary">Lưu</button>
+            <a href="/owner/chusan_dichvu" class="btn btn-secondary">Hủy</a>
+        </form>
+
+    </main>
+
+    <script>window.currentRole = "<%= session.role %>"</script>
+    <script src="/scripts/dichvu.js" defer></script>
+    <script src="/scripts/sidebar.js" defer></script>
+
+</body>
+
+</html>

@@ -11,7 +11,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       body: JSON.stringify({ username, password }),
     });
     if (response.redirected) {
-      window.location.href = response.url; // Chuyển hướng nếu thành công
+      window.location.href = response.url;
     } else {
       const data = await response.json();
       errorMessage.textContent = data.error || "Lỗi không xác định";

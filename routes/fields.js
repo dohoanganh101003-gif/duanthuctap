@@ -1,54 +1,56 @@
 const express = require("express");
 const router = express.Router();
 const FieldController = require("../controllers/FieldController");
-const Service = require("../models/Service");
+const ServiceController = require("../controllers/ServiceController");
 const multer = require("multer");
 const path = require("path");
-
 const fs = require("fs");
+const {
+  authenticateToken,
+  checkAdmin,
+} = require("../middlewares/authMiddleware");
+
 const uploadDir = path.join(__dirname, "..", "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) =>
-    cb(null, Date.now() + path.extname(file.originalname)),
+    cb(
+      null,
+      `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(
+        file.originalname
+      )}`
+    ),
 });
 const upload = multer({ storage });
 
-const {
-  authenticateToken,
-  checkAdmin,
-  checkOwner,
-} = require("../middlewares/authMiddleware");
-
-router.get("/", (req, res) => {
-  const pool = req.app.locals.pool;
-  const fieldController = new FieldController(pool);
-  fieldController.getHomePage(req, res);
+router.use((req, res, next) => {
+  req.controller = new FieldController(req.app.locals.pool);
+  req.serviceController = new ServiceController(req.app.locals.pool);
+  next();
 });
 
-router.get("/api/sanbong", (req, res) => {
-  const pool = req.app.locals.pool;
-  const fieldController = new FieldController(pool);
-  fieldController.getFieldsGeoJSON(req, res);
-});
+// CLIENT
+router.get("/", (req, res) => req.controller.getHomePage(req, res));
+router.get("/api/sanbong", (req, res) =>
+  req.controller.getFieldsGeoJSON(req, res)
+);
+router.get("/sanbong", (req, res) =>
+  req.controller.getFieldsWithSubFields(req, res)
+);
 
-router.get("/sanbong", (req, res) => {
-  const pool = req.app.locals.pool;
-  const fieldController = new FieldController(pool);
-  fieldController.getFieldsWithSubFields(req, res);
-});
+router.get("/them_sanbong", authenticateToken, checkAdmin, (req, res) =>
+  req.controller.renderAddFieldPage(req, res)
+);
 
-router.get("/them_sanbong", authenticateToken, checkAdmin, async (req, res) => {
-  const pool = req.app.locals.pool;
-  const result = await pool.query(
-    "SELECT id, username FROM users WHERE role='owner'"
-  );
-  res.render("them_sanbong", { owners: result.rows, session: req.session });
-});
+router.get("/danhsach_sanbong", authenticateToken, checkAdmin, (req, res) =>
+  req.controller.renderAdminFieldsPage(req, res)
+);
+
+router.get("/sancon/:field_id", authenticateToken, checkAdmin, (req, res) =>
+  req.controller.renderAdminSubFieldsPage(req, res)
+);
 
 router.post(
   "/api/sanbong",
@@ -56,16 +58,11 @@ router.post(
   checkAdmin,
   upload.array("images", 5),
   (req, res) => {
-    const pool = req.app.locals.pool;
-    const fieldController = new FieldController(pool);
-
-    if (req.files && req.files.length > 0) {
+    if (req.files?.length)
       req.body.images = JSON.stringify(
         req.files.map((f) => "/uploads/" + f.filename)
       );
-    }
-
-    fieldController.createField(req, res);
+    req.controller.createField(req, res);
   }
 );
 
@@ -75,43 +72,24 @@ router.put(
   checkAdmin,
   upload.array("images", 5),
   (req, res) => {
-    const pool = req.app.locals.pool;
-    const fieldController = new FieldController(pool);
-
-    if (req.files && req.files.length > 0) {
+    if (req.files?.length)
       req.body.images = JSON.stringify(
         req.files.map((f) => "/uploads/" + f.filename)
       );
-    }
-
-    fieldController.updateField(req, res);
+    req.controller.updateField(req, res);
   }
 );
-router.get("/sua_sanbong/:id", (req, res) => {
-  const pool = req.app.locals.pool;
-  const fieldController = new FieldController(pool);
-  fieldController.getFieldById(req, res);
-});
 
-router.delete("/api/sanbong/:id", authenticateToken, checkAdmin, (req, res) => {
-  const pool = req.app.locals.pool;
-  const fieldController = new FieldController(pool);
-  fieldController.deleteField(req, res);
-});
+router.get("/sua-sanbong/:id", authenticateToken, checkAdmin, (req, res) =>
+  req.controller.getFieldById(req, res)
+);
 
-// Lấy dịch vụ theo sân bóng
-router.get("/dichvu/:sanbong_id", async (req, res) => {
-  try {
-    const pool = req.app.locals.pool;
-    const serviceModel = new Service(pool);
-    const services = await serviceModel.getServicesByFieldId(
-      req.params.sanbong_id
-    );
-    res.json(services);
-  } catch (err) {
-    console.error(err.stack);
-    res.status(500).json({ error: "Lỗi cơ sở dữ liệu: " + err.message });
-  }
-});
+router.delete("/api/sanbong/:id", authenticateToken, checkAdmin, (req, res) =>
+  req.controller.deleteField(req, res)
+);
+
+router.get("/dichvu/:sanbong_id", (req, res) =>
+  req.serviceController.getByFieldId(req, res)
+);
 
 module.exports = router;
