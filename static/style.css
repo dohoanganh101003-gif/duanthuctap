@@ -1,139 +1,121 @@
-#sidebar {
-    width: 100%;
-    background-color: #f8f9fa;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    margin-bottom: 20px;
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
+
+body {
+  background: #ffffff;
+  font-family: "Poppins", sans-serif;
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.search-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    max-width: 100%;
+/* ======= KHUNG NGOÀI ======= */
+.auth-wrapper {
+  background: #ffffff;
+  border-radius: 30px;
+  padding: 25px;
+  width: 460px; 
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.7s ease-in-out;
 }
 
-.search-input {
-    padding: 8px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    flex: 1;
-    min-width: 200px;
-    max-width: 100%;
+/* ======= KHUNG TRONG (FORM) ======= */
+.auth-box {
+  background: linear-gradient(135deg, #007bff, #0096ff); 
+  border-radius: 20px;
+  padding: 50px 40px;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.25);
+  color: white;
 }
 
-.search-button,
-.nearby-button,
-.draw-button {
-    padding: 8px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+.auth-box h2 {
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 25px;
+  color: #fff;
 }
 
-.search-button:hover,
-.nearby-button:hover,
-.draw-button:hover {
-    background-color: #0056b3;
+/* ======= INPUT ======= */
+.form-control {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: none;
+  outline: none;
 }
 
-.history-title {
-    margin-top: 20px;
-    font-size: 16px;
-    font-weight: bold;
+.form-control:focus {
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
-.history-item {
-    padding: 5px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
+/* ======= LABEL ======= */
+.form-label {
+  color: #f0f8ff;
+  font-weight: 500;
 }
 
-.history-item:hover {
-    background-color: #f0f0f0;
+/* ======= BUTTON ======= */
+.btn-primary {
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 600;
+  background: #ffffff;
+  color: #007bff;
+  border: none;
+  transition: all 0.3s ease;
 }
 
-#map {
-    width: 100%;
-    height: 700px;
-    margin-bottom: 20px;
+.btn-primary:hover {
+  transform: scale(1.03);
+  background: #e6e6e6;
+  color: #0056b3;
 }
 
-.popup-container {
-    max-width: 250px;
-    max-height: 300px;
-    overflow-y: auto;
-    font-family: Arial, sans-serif;
-    padding: 5px;
+/* ======= TEXT ======= */
+p {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+  color: #f0f8ff;
 }
 
-.popup-image {
-    width: 100%;
-    height: auto;
-    border-radius: 5px;
-    margin-bottom: 5px;
+a {
+  color: #ffffff;
+  text-decoration: underline;
+  font-weight: 500;
 }
 
-.popup-header {
-    margin-bottom: 5px;
+a:hover {
+  color: #d0e7ff;
 }
 
-.popup-title {
-    font-size: 16px;
-    margin: 0;
-    color: #333;
+.alert-danger {
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.popup-rating {
-    color: #ffd700;
-    margin: 3px 0;
-}
 
-.popup-address,
-.popup-phone,
-.popup-time {
-    font-size: 12px;
-    margin: 3px 0;
-    color: #555;
-}
-
-.popup-footer {
-    margin-top: 5px;
-    text-align: right;
-    display: flex;
-    justify-content: flex-end;
-    gap: 5px;
-}
-
-.route-button,
-.service-button {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 4px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.route-button:hover,
-.service-button:hover {
-    background-color: #218838;
-}
-.circle-label {
-    text-align: center;
-    pointer-events: none; 
+/* ======= ANIMATION ======= */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
   }
-  
-  .circle-label div {
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
-    font-size: 16px; 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  .table-hidden {
-    display: none;
+}
+
+/* ======= RESPONSIVE ======= */
+@media (max-width: 480px) {
+  .auth-wrapper {
+    width: 90%;
+    padding: 15px;
   }
+
+  .auth-box {
+    padding: 35px 25px;
+  }
+}

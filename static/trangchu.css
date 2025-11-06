@@ -18,10 +18,10 @@ body, html {
   background: linear-gradient(90deg, #3a8dde, #2b79c2);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   display: flex;
-  align-items: center; 
+  align-items: center;
   justify-content: space-between;
   padding: 0.6rem 1.2rem;
-  min-height: 70px; 
+  min-height: 70px;
 }
 
 .navbar-brand {
@@ -43,80 +43,100 @@ body, html {
   color: #e3f2fd !important;
 }
 
-/* ==================== THANH TÌM KIẾM CĂN GIỮA ==================== */
+/* ==================== THANH TÌM KIẾM LIỀN KHỐI KÍN HOÀN TOÀN ==================== */
 .search-container {
   flex: 1;
   display: flex;
-  align-items: center;       
-  justify-content: center;  
-  height: 70px;             
-}
-
-.search-container .input-group input {
-  height: 42px;            
-  border-radius: 25px 0 0 25px;
-  border: 2px solid #fff;
-  padding-left: 16px;
-}
-
-.search-container .input-group {
-  max-width: 700px;
-  width: 100%;
-}
-
-.search-container input {
-  border-radius: 25px 0 0 25px;
-  border: 2px solid #fff;
-}
-
-.search-container .btn {
-  height: 42px;
-  display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-}
-
-#search-history {
-  display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 6px;
+  gap: 10px;
+  height: 70px;
 }
 
-#search-button,
+.search-group {
+  display: flex;
+  align-items: center;
+  width: 420px;
+  border-radius: 25px;
+  overflow: hidden;
+  background: #fff;
+  border: none;
+  position: relative;
+}
+
+#search-input {
+  flex: 1;
+  height: 42px;
+  border: none;
+  outline: none;
+  padding: 0 16px;
+  font-size: 15px;
+  border-radius: 25px 0 0 25px;
+  background-color: #fff;
+  margin-right: -1px; 
+
+}
+
+#search-button {
+  height: 42px;
+  border: none;
+  background-color: #009cf7 !important;
+  color: #fff;
+  font-weight: 500;
+  padding: 0 24px;
+  border-radius: 25px; 
+  margin-left: -12px; 
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  position: relative;
+  z-index: 3;
+}
+
+
+#search-button:hover {
+  background-color: #1e63a5 !important; 
+}
+
+.search-group::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: transparent;
+}
+
+#search-input:focus {
+  box-shadow: 0 0 5px rgba(43, 121, 194, 0.4);
+}
+
+/* ==================== NÚT KHÁC ==================== */
 #nearby-button,
 #toggle-view {
-  height: 100%;
   border: none;
   padding: 8px 16px;
   transition: 0.25s ease;
   color: #fbfbfb !important;
   font-weight: 500;
+  border-radius: 25px !important;
+  height: 42px;
 }
 
-#search-button,
 #nearby-button {
   background-color: #009cf7 !important;
-  border-color: #2b79c2 !important;
-  border-radius: 6px;
-  margin-left: 8px;
 }
 
-#search-button:hover,
 #nearby-button:hover {
   background-color: #1e63a5 !important;
 }
 
-#toggle-view,
-.toggle-btn {
+#toggle-view {
   background-color: #dc3545 !important;
-  border-radius: 6px !important;
-  margin-left: 8px;
 }
 
-#toggle-view:hover,
-.toggle-btn:hover {
+#toggle-view:hover {
   background-color: #b02a37 !important;
 }
 
@@ -125,7 +145,7 @@ body, html {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
 #search-history .history-item {
@@ -158,13 +178,11 @@ body, html {
 
 .table-container {
   background: #fff;
-  padding: 20px ;
+  padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow-x: auto;
-
 }
-
 
 .table thead th {
   background-color: #2b79c2;
@@ -196,21 +214,32 @@ body, html {
 /* ==================== NÚT HÀNH ĐỘNG TRONG BẢNG ==================== */
 .table .action-buttons {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 6px; 
+  padding: 4px 0;
+  flex-wrap: wrap;
 }
 
 .table .action-buttons .btn {
-  width: 90px;
   border: none;
-  border-radius: 8px;
-  padding: 6px 0;
-  font-size: 0.9rem;
+  border-radius: 6px;
+  padding: 4px 8px; 
+  font-size: 1rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   color: #fff !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  line-height: 1.2;
+  white-space: nowrap; 
+  height: auto;
+  width: auto; 
+}
+
+.table .action-buttons .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .table .btn-edit { background-color: #f4b400; }
@@ -237,9 +266,7 @@ body, html {
   z-index: 3000 !important;
 }
 
-.sidebar.active {
-  left: 0;
-}
+.sidebar.active { left: 0; }
 
 .sidebar .close-btn {
   position: absolute;
@@ -252,9 +279,7 @@ body, html {
   cursor: pointer;
 }
 
-.sidebar-menu li {
-  margin: 10px 0;
-}
+.sidebar-menu li { margin: 10px 0; }
 
 .sidebar-menu a {
   color: white;
@@ -291,107 +316,289 @@ body, html {
 .leaflet-control { z-index: 100 !important; }
 .leaflet-popup { z-index: 2000 !important; }
 
-/* ========== Popup bản đồ ========== */
+/* ==================== POPUP TRONG BẢN ĐỒ ==================== */
+.leaflet-popup-content {
+  margin: 10px 8px !important;
+  text-align: left; 
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 .popup-wrapper {
-  width: 250px;
-  font-family: "Segoe UI", Arial, sans-serif;
+  max-width: 260px;
+  word-wrap: break-word;
 }
 
 .popup-title {
   font-weight: 600;
   color: #2b79c2;
   margin-bottom: 6px;
-  text-align: center;
+  text-align: center; 
 }
 
-/* Thông tin căn trái */
-.popup-info {
-  text-align: left;
-  font-size: 0.9rem;
-  color: #444;
-  margin-bottom: 10px;
+.popup-address,
+.popup-phone,
+.popup-time,
+.popup-price,
+.popup-surface {
+  margin: 4px 0;
+  color: #333;
 }
 
-.popup-info p {
-  margin: 3px 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.popup-info i {
+.popup-address i,
+.popup-phone i,
+.popup-time i,
+.popup-price i,
+.popup-surface i {
   color: #2b79c2;
-  width: 16px;
+  width: 18px;
   text-align: center;
 }
 
-/* Ảnh sân bóng */
+/* Ảnh popup */
 .popup-image-wrapper {
-  width: 100%;
-  text-align: center;
-  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  margin: 8px 0;
 }
 
-.popup-image-wrapper img {
+.popup-image {
   width: 100%;
-  max-width: 230px;
+  max-width: 220px;
   height: 130px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-.no-image {
-  background-color: #f0f0f0;
-  color: #777;
-  padding: 20px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-/* Nút tác vụ */
 .popup-footer {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
   margin-top: 10px;
+  text-align: center;
 }
 
 .popup-footer .btn {
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  padding: 6px 10px;
-  font-size: 0.85rem;
   color: #fff !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  min-width: 110px;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.popup-footer .btn i {
-  margin-right: 4px;
+.popup-footer .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 
-.popup-footer .btn-primary { background-color: #007bff; }
-.popup-footer .btn-success { background-color: #28a745; }
-.popup-footer .btn-warning { background-color: #f4b400; color: #fff; }
-.popup-footer .btn-info { background-color: #17a2b8; }
-.popup-footer .btn-warning:hover { background-color: #e2a100; }
+/* Màu riêng cho từng nút */
+.popup-footer .btn-primary { background-color: #007bff !important; }
+.popup-footer .btn-success { background-color: #28a745 !important; }
+.popup-footer .btn-warning { background-color: #f4b400 !important; color: #fff !important; }
+.popup-footer .btn-info    { background-color: #17a2b8 !important; }
+
+/* ==== MỞ RỘNG KHUNG BẢNG QUẢN LÝ ĐẶT SÂN ==== */
+main.container {
+  max-width: 100% !important;
+}
+
+.table-responsive {
+  overflow-x: visible !important;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  padding: 8px 10px;
+  font-size: 14px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* ==== GIỚI HẠN CHIỀU RỘNG CỘT ==== */
 
 
+.table tbody tr:hover {
+  background-color: #f8fbff !important;
+  transition: background-color 0.25s ease;
+}
+
+.payment-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.booking-btn {
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  min-width: 110px;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.booking-btn:hover {
+  transform: translateY(-1px);
+}
+
+.booking-btn-info {
+  background-color: #007bff;
+  color: white;
+}
+.booking-btn-info:hover { background-color: #0069d9; }
+
+.booking-btn-accept {
+  background-color: #28a745;
+  color: white;
+}
+.booking-btn-accept:hover { background-color: #218838; }
+
+.booking-btn-cancel {
+  background-color: #dc3545;
+  color: white;
+}
+.booking-btn-cancel:hover { background-color: #c82333; }
+
+.booking-btn-confirm-payment {
+  background-color: #17a2b8;
+  color: white;
+}
+.booking-btn-confirm-payment:hover { background-color: #138496; }
+
+.booking-btn-decline-payment {
+  background-color: white;
+  color: #dc3545;
+  border: 1.5px solid #dc3545;
+}
+.booking-btn-decline-payment:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.booking-btn-waiting-payment {
+  background-color: #ffc107;
+  color: #333;
+}
+.booking-btn-waiting-payment:hover {
+  background-color: #ffb300;
+  color: #000;
+}
+
+.status-pending {
+  color: #ff9800;
+  font-weight: 600;
+}
+.status-confirmed {
+  color: #28a745;
+  font-weight: 600;
+}
+.status-cancelled {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+#qrContainer img {
+  max-width: 220px;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  margin-top: 8px;
+}
+
+/* ====================== ADMIN USER EDIT PAGE ====================== */
+.edit-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  padding: 30px;
+  max-width: 600px;
+  margin: 40px auto;
+}
+
+.edit-container h2 {
+  text-align: center;
+  font-weight: 600;
+  color: #2b79c2;
+  margin-bottom: 25px;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.btn-save {
+  background-color: #2b79c2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+  background-color: #1f5d97;
+}
+
+.btn-back {
+  background-color: #6c757d;
+  color: white;
+  border-radius: 8px;
+  padding: 8px 20px;
+  text-decoration: none;
+}
+
+.btn-back:hover {
+  background-color: #5a6268;
+  color: white;
+}
+
+.custom-football-icon {
+  font-size: 21px;
+  text-align: center;
+  line-height: 30px;
+}
 
 
-/* ==================== RESPONSIVE ==================== */
+@media (max-width: 480px) {
+  .popup-footer .btn {
+    min-width: 100%;
+    font-size: 12px;
+  }
+  .popup-image {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
 @media (max-width: 768px) {
   #map { height: 500px; }
   .navbar-brand { font-size: 1.2rem; }
-  .navbar .container.text-center {
-    position: static;
-    transform: none;
-    width: 100%;
-    margin-top: 10px;
-  }
   #search-input { max-width: 100%; }
   #nearby-button, #toggle-view { margin-left: 4px; }
 }

@@ -1,0 +1,173 @@
+.table-home th, 
+.table-home td {
+  padding: 8px 10px;
+  font-size: 14px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Giới hạn chiều rộng từng cột */
+.table-home th:nth-child(1),
+.table-home td:nth-child(1) { width: 15%; } 
+.table-home th:nth-child(2),
+.table-home td:nth-child(2) { width: 20%; } 
+.table-home th:nth-child(3),
+.table-home td:nth-child(3) { width: 9%; } 
+.table-home th:nth-child(4),
+.table-home td:nth-child(4) { width: 8%; } 
+.table-home th:nth-child(5),
+.table-home td:nth-child(5) { width: 9%; } 
+.table-home th:nth-child(6),
+.table-home td:nth-child(6) { width: 8%; } 
+.table-home th:nth-child(7),
+.table-home td:nth-child(7) { width: 8%; }  
+.table-home th:nth-child(8),
+.table-home td:nth-child(8) { width: 11%; } 
+.table-home th:nth-child(9),
+.table-home td:nth-child(9) { width: 12%; }  
+.table-home th:nth-child(10),
+.table-home td:nth-child(10) { width: 20%; } 
+
+.table-home tbody tr:hover {
+  background-color: #f8fbff !important;
+  transition: background-color 0.25s ease;
+}
+
+
+/* ==== CẤU HÌNH CHIỀU RỘNG CỘT CHO DANH SÁCH SÂN  ==== */
+.table-field th:nth-child(1),
+.table-field td:nth-child(1) { width: 15%; }
+.table-field th:nth-child(2),
+.table-field td:nth-child(2) { width: 25%; }
+.table-field th:nth-child(3),
+.table-field td:nth-child(3) { width: 10%; }
+.table-field th:nth-child(4),
+.table-field td:nth-child(4) { width: 8%; }
+.table-field th:nth-child(5),
+.table-field td:nth-child(5) { width: 10%; }
+.table-field th:nth-child(6),
+.table-field td:nth-child(6) { width: 10%; }
+.table-field th:nth-child(7),
+.table-field td:nth-child(7) { width: 12%; }
+.table-field th:nth-child(8),
+.table-field td:nth-child(8) { width: 15%; }
+
+/* ==================== GIỚI HẠN CHIỀU RỘNG CỘT (QUẢN LÝ ĐẶT SÂN) ==================== */
+.table-bookings th:nth-child(1),
+.table-bookings td:nth-child(1) { width: 15%; } 
+.table-bookings th:nth-child(2),
+.table-bookings td:nth-child(2) { width: 15%; }
+.table-bookings th:nth-child(3),
+.table-bookings td:nth-child(3) { width: 12%; }
+.table-bookings th:nth-child(4),
+.table-bookings td:nth-child(4) { width: 20%; } 
+.table-bookings th:nth-child(5),
+.table-bookings td:nth-child(5) { width: 9%; } 
+.table-bookings th:nth-child(6),
+.table-bookings td:nth-child(6) { width: 10%; } 
+.table-bookings th:nth-child(7),
+.table-bookings td:nth-child(7) { width: 15%; } 
+
+/* ==================== GIỚI HẠN CHIỀU RỘNG CỘT (CHỦ SÂN - QUẢN LÝ ĐẶT SÂN) ==================== */
+.table-owner-bookings th:nth-child(1),
+.table-owner-bookings td:nth-child(1) { width: 14%; } 
+.table-owner-bookings th:nth-child(2),
+.table-owner-bookings td:nth-child(2) { width: 15%; } 
+.table-owner-bookings th:nth-child(3),
+.table-owner-bookings td:nth-child(3) { width: 12%; }
+.table-owner-bookings th:nth-child(4),
+.table-owner-bookings td:nth-child(4) { width: 22%; } 
+.table-owner-bookings th:nth-child(5),
+.table-owner-bookings td:nth-child(5) { width: 10%; } 
+.table-owner-bookings th:nth-child(6),
+.table-owner-bookings td:nth-child(6) { width: 10%; } 
+.table-owner-bookings th:nth-child(7),
+.table-owner-bookings td:nth-child(7) { width: 18%; } 
+
+/* ==================== GIỚI HẠN CHIỀU RỘNG CỘT (CHỦ SÂN - QUẢN LÝ SÂN BÓNG) ==================== */
+.table-owner-fields th:nth-child(1),
+.table-owner-fields td:nth-child(1) { width: 15%; } 
+.table-owner-fields th:nth-child(2),
+.table-owner-fields td:nth-child(2) { width: 22%; }
+.table-owner-fields th:nth-child(3),
+.table-owner-fields td:nth-child(3) { width: 9%; } 
+.table-owner-fields th:nth-child(4),
+.table-owner-fields td:nth-child(4) { width: 9%; } 
+.table-owner-fields th:nth-child(5),
+.table-owner-fields td:nth-child(5) { width: 9%; } 
+.table-owner-fields th:nth-child(6),
+.table-owner-fields td:nth-child(6) { width: 10%; } 
+.table-owner-fields th:nth-child(7),
+.table-owner-fields td:nth-child(7) { width: 12%; } 
+.table-owner-fields th:nth-child(8),
+.table-owner-fields td:nth-child(8) { width: 15%; } 
+
+.table-owner-fields img.thumb {
+  width: 70px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.table-owner-fields .action-buttons .btn {
+  margin: 2px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+}
+
+
+/* ==================== GIỚI HẠN CHIỀU RỘNG CỘT (LỊCH SỬ ĐẶT SÂN) ==================== */
+.table-history th:nth-child(1),
+.table-history td:nth-child(1) { width: 18%; } 
+.table-history th:nth-child(2),
+.table-history td:nth-child(2) { width: 10%; } 
+.table-history th:nth-child(3),
+.table-history td:nth-child(3) { width: 10%; } 
+.table-history th:nth-child(4),
+.table-history td:nth-child(4) { width: 12%; } 
+.table-history th:nth-child(5),
+.table-history td:nth-child(5) { width: 10%; } 
+.table-history th:nth-child(6),
+.table-history td:nth-child(6) { width: 12%; } 
+.table-history th:nth-child(7),
+.table-history td:nth-child(7) { width: 13%; } 
+
+.table-history ul.no-bullet {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.table-history td {
+  vertical-align: middle;
+}
+
+.table-history .badge {
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.table-history .btn {
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  margin: 2px;
+}
+
+.table-history .btn.pay-btn {
+  background-color: #ffc107;
+  color: #000;
+  border: none;
+}
+
+.table-history .btn.pay-btn:hover {
+  background-color: #e0a800;
+}
+
+.table-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}

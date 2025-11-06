@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quản lý người dùng</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/trangchu.css" />
+</head>
+
+<body>
+    <header class="main-header shadow-sm">
+        <nav class="navbar navbar-dark bg-primary py-3 d-flex align-items-center justify-content-between">
+            <button class="btn btn-outline-light btn-sm" id="sidebarToggle">☰</button>
+            <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
+
+            <ul class="navbar-nav ml-auto flex-row">
+                <% if (session && session.user_id) { %>
+                    <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
+                    <% } else { %>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a></li>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
+                        <% } %>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" id="closeSidebar">×</button>
+        <ul class="sidebar-menu list-unstyled mt-4">
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/lichsu_datsan">Lịch sử đặt sân</a></li>
+
+            <% if (session && session.role==='admin' ) { %>
+                <li><a href="/danhsach_sanbong">Quản lý sân bóng</a></li>
+                <li><a href="/danhsach-dichvu">Quản lý dịch vụ</a></li>
+                <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                <li><a href="/admin/users" class="active">Quản lý người dùng</a></li>
+                <li><a href="/thongke">Thống kê</a></li>
+                <% } %>
+        </ul>
+    </div>
+
+    <main class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Danh sách người dùng</h2>
+            <a href="/" class="btn btn-secondary">← Quay lại</a>
+        </div>
+
+        <% if (users && users.length> 0) { %>
+            <div class="table-container">
+                <table class="table table-striped table-bordered text-center align-middle">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên đăng nhập</th>
+                            <th>Số điện thoại</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% users.forEach(user=> { %>
+                            <tr>
+                                <td>
+                                    <%= user.id %>
+                                </td>
+                                <td>
+                                    <%= user.username %>
+                                </td>
+                                <td>
+                                    <%= user.phone || '-' %>
+                                </td>
+                                <td>
+                                    <%= user.email %>
+                                </td>
+                                <td>
+                                    <%= user.role %>
+                                </td>
+                                <td>
+                                    <% if (user.status==='active' ) { %>
+                                        <span class="status-confirmed">Hoạt động</span>
+                                        <% } else if (user.status==='banned' ) { %>
+                                            <span class="status-cancelled">Bị khóa</span>
+                                            <% } else { %>
+                                                <span class="text-muted">Đã xóa</span>
+                                                <% } %>
+                                </td>
+                                <td>
+                                    <% if (user.status !=='deleted' ) { %>
+                                        <div class="action-buttons">
+                                            <% if (user.status==='active' ) { %>
+                                                <a href="/admin/users/<%= user.id %>" class="btn btn-edit">Sửa</a>
+
+                                                <form action="/admin/users/<%= user.id %>/status" method="POST"
+                                                    style="display:inline;">
+                                                    <input type="hidden" name="newStatus" value="banned" />
+                                                    <button type="submit" class="btn btn-sub"
+                                                        onclick="return confirm('Bạn có chắc muốn KHÓA tài khoản này?')">
+                                                        Khóa
+                                                    </button>
+                                                </form>
+
+                                                <% } else if (user.status==='banned' ) { %>
+                                                    <form action="/admin/users/<%= user.id %>/status" method="POST"
+                                                        style="display:inline;">
+                                                        <input type="hidden" name="newStatus" value="active" />
+                                                        <button type="submit" class="btn btn-sub"
+                                                            onclick="return confirm('Mở khóa tài khoản này?')">
+                                                            Mở khóa
+                                                        </button>
+                                                    </form>
+                                                    <% } %>
+
+                                                        <form action="/admin/users/<%= user.id %>/delete" method="POST"
+                                                            style="display:inline;">
+                                                            <button type="submit" class="btn btn-delete"
+                                                                onclick="return confirm('Bạn có chắc muốn XÓA người dùng này không?')">
+                                                                Xóa
+                                                            </button>
+                                                        </form>
+                                        </div>
+                                        <% } else { %>
+                                            <span class="text-muted">Đã xóa</span>
+                                            <% } %>
+                                </td>
+
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+                <div class="alert alert-info text-center">Hiện chưa có người dùng nào trong hệ thống.</div>
+                <% } %>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="/scripts/sidebar.js" defer></script>
+</body>
+
+</html>

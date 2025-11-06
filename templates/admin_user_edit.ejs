@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chỉnh sửa người dùng</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/trangchu.css" />
+
+</head>
+
+<body>
+    <header class="main-header shadow-sm">
+        <nav class="navbar navbar-dark bg-primary py-3 d-flex align-items-center justify-content-between">
+            <button class="btn btn-outline-light btn-sm" id="sidebarToggle">☰</button>
+            <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
+            <ul class="navbar-nav ml-auto flex-row">
+                <% if (session && session.user_id) { %>
+                    <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
+                    <% } else { %>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a></li>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
+                        <% } %>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" id="closeSidebar">×</button>
+        <ul class="sidebar-menu list-unstyled mt-4">
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/lichsu_datsan">Lịch sử đặt sân</a></li>
+
+            <% if (session && session.role==='admin' ) { %>
+                <li><a href="/danhsach_sanbong">Quản lý sân bóng</a></li>
+                <li><a href="/danhsach-dichvu">Quản lý dịch vụ</a></li>
+                <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                <li><a href="/thongke">Thống kê</a></li>
+                <li><a href="/admin/users" class="active">Quản lý người dùng</a></li>
+                <% } %>
+        </ul>
+    </div>
+
+    <main class="edit-container">
+        <h2>Thông tin người dùng</h2>
+
+        <form action="/admin/users/<%= user.id %>/edit" method="POST">
+            <div class="form-group">
+                <label for="username" class="form-label">Tên đăng nhập:</label>
+                <input type="text" class="form-control" id="username" name="username" value="<%= user.username %>"
+                    required />
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email:</label>
+                <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>" required />
+            </div>
+
+            <div class="form-group">
+                <label for="phone" class="form-label">Số điện thoại:</label>
+                <input type="text" class="form-control" id="phone" name="phone" value="<%= user.phone || '' %>" />
+            </div>
+
+            <div class="form-group">
+                <label for="role" class="form-label">Phân quyền:</label>
+                <select class="form-control" id="role" name="role">
+                    <option value="user" <%=user.role==='user' ? 'selected' : '' %>>Người dùng</option>
+                    <option value="owner" <%=user.role==='owner' ? 'selected' : '' %>>Chủ sân</option>
+                    <option value="admin" <%=user.role==='admin' ? 'selected' : '' %>>Quản trị viên</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="status" class="form-label">Trạng thái:</label>
+                <select class="form-control" id="status" name="status">
+                    <option value="active" <%=user.status==='active' ? 'selected' : '' %>>Hoạt động</option>
+                    <option value="banned" <%=user.status==='banned' ? 'selected' : '' %>>Bị khóa</option>
+                    <option value="deleted" <%=user.status==='deleted' ? 'selected' : '' %>>Đã xóa</option>
+                </select>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a href="/admin/users" class="btn-back">← Quay lại</a>
+                <button type="submit" class="btn-save">Lưu thay đổi</button>
+            </div>
+        </form>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="/scripts/sidebar.js" defer></script>
+</body>
+
+</html>

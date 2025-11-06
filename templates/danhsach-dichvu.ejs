@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Sân Bóng</title>
+    <title>Danh sách dịch vụ</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
@@ -50,6 +50,9 @@
                 <li><a href="/danhsach_sanbong">Quản lý sân bóng</a></li>
                 <li><a href="/danhsach-dichvu" class="active">Quản lý dịch vụ</a></li>
                 <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                <li><a href="/admin/users"> Quản lý người dùng</a></li>
+                <li><a href="/thongke"> Thống kê</a></li>
+
                 <% } %>
 
         </ul>
@@ -59,7 +62,9 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2>Danh sách dịch vụ</h2>
 
-            <a href="/them_dichvu" class="btn btn-success">+ Thêm dịch vụ</a>
+            <% if (session && (session.role==='admin' || session.role==='owner' )) { %>
+                <a href="/them_dichvu" class="btn btn-success">+ Thêm dịch vụ</a>
+                <% } %>
         </div>
         <div class="table-container">
             <table class="table table-bordered table-striped">

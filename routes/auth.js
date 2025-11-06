@@ -27,7 +27,6 @@ router.post("/dangky-owner", (req, res) => {
   authController.register(req, res, "owner");
 });
 
-// ----- Admin đăng ký -----
 router.get("/dangky-admin", (req, res) => {
   const pool = req.app.locals.pool;
   const authController = new AuthController(pool);

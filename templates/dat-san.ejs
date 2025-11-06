@@ -4,19 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thêm sân bóng</title>
+    <title>Đặt sân</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
     <link rel="stylesheet" href="/trangchu.css">
+    <link rel="stylesheet" href="/datSan.css">
+
 
 </head>
 
 <body>
     <header class="main-header shadow-sm">
         <nav class="navbar navbar-dark bg-primary py-3 d-flex align-items-center justify-content-between">
-            <!-- Nút mở sidebar -->
             <button class="btn btn-outline-light btn-sm" id="sidebarToggle">
                 ☰
             </button>
@@ -51,89 +52,71 @@
                 <li><a href="/danhsach_sanbong">Quản lý sân bóng</a></li>
                 <li><a href="/danhsach-dichvu">Quản lý dịch vụ</a></li>
                 <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                <li><a href="/admin/users"> Quản lý người dùng</a></li>
+                <li><a href="/thongke"> Thống kê</a></li>
+
                 <% } %>
 
         </ul>
     </div>
-    <main class="container mt-4">
-        <h2>Đặt sân mới</h2>
-        <form action="/api/dat-san" method="POST">
-            <div class="form-group">
-                <label for="sub_field_id">Chọn sân con</label>
-                <select class="form-control" name="sub_field_id" required>
-                    <option value="">-- Chọn sân con --</option>
-                    <% subFields.forEach(sf=> { %>
-                        <option value="<%= sf.id %>">
-                            <%= sf.name %> - <%= sf.size %> - <%= sf.surface_type %>
-                        </option>
-                        <% }) %>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="start_time">Thời gian bắt đầu</label>
-                <input type="datetime-local" class="form-control" name="start_time" required>
-            </div>
+    <main class="booking-container">
+        <div class="booking-card">
+            <h2>Đặt sân mới</h2>
 
-            <div class="form-group">
-                <label for="end_time">Thời gian kết thúc</label>
-                <input type="datetime-local" class="form-control" name="end_time" required>
-            </div>
-            <% if (services && services.length> 0) { %>
-                <div class="form-group">
-                    <label>Dịch vụ kèm theo</label><br>
-                    <% services.forEach(s=> { %>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="services" value="<%= s.id %>">
-                            <label class="form-check-label">
-                                <%= s.name %> - <%= s.price %> VNĐ
-                            </label>
-                        </div>
-                        <% }) %>
+            <% if (typeof error !=='undefined' && error==='trunglich' ) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Khung giờ này đã có người đặt!</strong> Vui lòng chọn thời gian khác.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Đóng">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <% } %>
 
-                    <button type="submit" class="btn btn-success">Đặt sân</button>
-        </form>
+                    <form action="/api/dat-san" method="POST">
+                        <div class="form-group mb-3">
+                            <label for="sub_field_id">Chọn sân con</label>
+                            <select class="form-control" name="sub_field_id" required>
+                                <option value="">-- Chọn sân con --</option>
+                                <% subFields.forEach(sf=> { %>
+                                    <option value="<%= sf.id %>">
+                                        <%= sf.name %> - <%= sf.size %> - <%= sf.surface_type %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
 
-        <h2 class="mt-5">Sân đã đặt của bạn</h2>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Sân con</th>
-                    <th>Thời gian</th>
-                    <th>Tổng tiền</th>
-                    <th>Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% bookings.forEach(b=> { %>
-                    <tr>
-                        <td>
-                            <%= b.sub_field_name %> - <%= b.field_name %>
-                        </td>
-                        <td>
-                            <%= new Date(b.start_time).toLocaleString("vi-VN", { hour12: false }) %>
-                                -
-                                <%= new Date(b.end_time).toLocaleString("vi-VN", { hour12: false }) %>
-                        </td>
+                        <div class="form-group mb-3">
+                            <label for="start_time">Thời gian bắt đầu</label>
+                            <input type="datetime-local" class="form-control" name="start_time" required>
+                        </div>
 
-                        <td>
-                            <%= b.total_price %> VNĐ
-                        </td>
-                        <td>
-                            <% if (b.status==='pending' ) { %>
-                                Đang chờ
-                                <% } else if (b.status==='confirmed' ) { %>
-                                    Đã chấp thuận
-                                    <% } else if (b.status==='cancelled' ) { %>
-                                        Bị từ chối
-                                        <% } %>
-                        </td>
-                    </tr>
-                    <% }) %>
-            </tbody>
-        </table>
+                        <div class="form-group mb-3">
+                            <label for="end_time">Thời gian kết thúc</label>
+                            <input type="datetime-local" class="form-control" name="end_time" required>
+                        </div>
+
+                        <% if (services && services.length> 0) { %>
+                            <div class="form-group mb-3">
+                                <label>Dịch vụ kèm theo</label>
+                                <% services.forEach(s=> { %>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="services"
+                                            value="<%= s.id %>">
+                                        <label class="form-check-label">
+                                            <%= s.name %> - <%= s.price.toLocaleString('vi-VN') %> VNĐ
+                                        </label>
+                                    </div>
+                                    <% }) %>
+                            </div>
+                            <% } %>
+
+                                <div class="text-center mt-4">
+                                    <button type="submit" class="btn btn-submit">Đặt sân</button>
+                                </div>
+                    </form>
+        </div>
     </main>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

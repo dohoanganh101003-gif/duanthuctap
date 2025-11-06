@@ -174,7 +174,6 @@ class SubFieldController {
           .json({ error: "Không có quyền xóa sân con này" });
       }
 
-      // Kiểm tra có đặt sân nào liên quan không
       const bookingCheck = await this.pool.query(
         "SELECT id FROM booking WHERE sub_field_id = $1",
         [id]

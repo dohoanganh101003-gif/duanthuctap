@@ -12,6 +12,11 @@ router.use((req, res, next) => {
   next();
 });
 
+// ===================== XEM DỊCH VỤ THEO SÂN BÓNG =====================
+router.get("/xem_dichvu/:field_id", (req, res) =>
+  req.controller.renderFieldServices(req, res)
+);
+
 router.post("/api/dichvu", authenticateToken, checkAdminOrOwner, (req, res) =>
   req.controller.createService(req, res)
 );

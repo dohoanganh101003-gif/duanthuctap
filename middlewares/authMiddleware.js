@@ -39,18 +39,13 @@ const checkOwner = async (req, res, next) => {
     }
 
     const pool = req.app.locals.pool;
-
-    // Xác định loại yêu cầu
     const path = req.originalUrl || "";
     const fieldId =
       (req.params && req.params.field_id) ||
       (req.body && req.body.field_id) ||
       null;
 
-    // Nếu URL chứa "sub_fields" → bỏ qua kiểm tra booking
     if (path.includes("sub_fields")) return next();
-
-    // Nếu có fieldId → kiểm tra sân có thuộc chủ này không
     if (fieldId) {
       const result = await pool.query(
         "SELECT id FROM fields WHERE id = $1 AND owner_id = $2",

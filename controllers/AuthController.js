@@ -28,41 +28,32 @@ class AuthController {
     if (!req.body) {
       return res.status(400).json({ error: "Dữ liệu đầu vào không hợp lệ" });
     }
-
     const { username, email, password, phone } = req.body;
-
     if (!username || !email || !password) {
       return res.status(400).json({
         error: "Tên đăng nhập, email và mật khẩu không được để trống",
       });
     }
-
     try {
       // Kiểm tra username/email đã tồn tại chưa
       const checkUser = await this.pool.query(
         "SELECT id FROM public.users WHERE username = $1 OR email = $2",
         [username, email]
       );
-
       if (checkUser.rows.length > 0) {
         return res
           .status(400)
           .json({ error: "Tên đăng nhập hoặc email đã tồn tại" });
       }
-
       // Mã hóa mật khẩu
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Bỏ role trong body, chỉ lấy role từ route
       const finalRole = roleFromRoute;
-
       const result = await this.pool.query(
         `INSERT INTO public.users (username, email, password, phone, role) 
        VALUES ($1, $2, $3, $4, $5) 
        RETURNING *`,
         [username, email, hashedPassword, phone || null, finalRole]
       );
-
       console.log(`Đăng ký thành công với role: ${finalRole}`, result.rows[0]);
       res.redirect("/dangnhap");
     } catch (err) {
@@ -84,15 +75,14 @@ class AuthController {
   // ----- Xử lý đăng nhập -----
   async login(req, res) {
     if (!req.body) {
-      return res.status(400).json({ error: "Dữ liệu đầu vào không hợp lệ" });
+      return res.render("dangnhap", { error: "Dữ liệu đầu vào không hợp lệ" });
     }
 
     const { username, password } = req.body;
-
     if (!username || !password) {
-      return res
-        .status(400)
-        .json({ error: "Tên đăng nhập và mật khẩu không được để trống" });
+      return res.render("dangnhap", {
+        error: "Tên đăng nhập và mật khẩu không được để trống",
+      });
     }
 
     try {
@@ -100,18 +90,27 @@ class AuthController {
         "SELECT * FROM public.users WHERE username = $1",
         [username]
       );
-
       const user = result.rows[0];
-      if (!user) {
-        return res.status(401).json({ error: "Tên đăng nhập không tồn tại" });
-      }
 
+      if (!user) {
+        return res.render("dangnhap", {
+          error: "Tên đăng nhập không tồn tại!",
+        });
+      }
       const match = await bcrypt.compare(password, user.password);
       if (!match) {
-        return res.status(401).json({ error: "Mật khẩu không đúng" });
+        return res.render("dangnhap", { error: "Mật khẩu không đúng!" });
       }
-
-      // Tạo token
+      if (user.status === "banned") {
+        return res.render("dangnhap", {
+          error: "Tài khoản của bạn đã bị khóa.",
+        });
+      }
+      if (user.status === "deleted") {
+        return res.render("dangnhap", {
+          error: "Tài khoản này đã bị xóa và không thể đăng nhập!",
+        });
+      }
       const token = jwt.sign(
         { user_id: user.id, role: user.role },
         config.jwt.secret,
@@ -122,7 +121,7 @@ class AuthController {
       req.session.user_id = user.id;
       req.session.role = user.role;
 
-      console.log(` ${user.role} đăng nhập thành công:`, user.username);
+      console.log(`${user.role} đăng nhập thành công:`, user.username);
 
       // Điều hướng theo role
       if (user.role === "admin") {
@@ -133,10 +132,11 @@ class AuthController {
         res.redirect("/");
       }
     } catch (err) {
-      console.error("Error logging in:", err.stack);
-      res.status(500).json({ error: "Lỗi khi đăng nhập: " + err.message });
+      console.error("Lỗi khi đăng nhập:", err.stack);
+      res.render("dangnhap", {
+        error: "Đã xảy ra lỗi máy chủ. Vui lòng thử lại sau.",
+      });
     }
   }
 }
-
 module.exports = AuthController;

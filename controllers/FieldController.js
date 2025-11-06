@@ -19,7 +19,7 @@ class FieldController {
     this.subFieldModel = new SubField(pool);
   }
 
-  //Trang chủ: hiển thị danh sách sân (có subfields)
+  //Trang chủ: hiển thị danh sách sân
   async getHomePage(req, res) {
     try {
       const { lat, lng } = req.query;
@@ -53,77 +53,78 @@ class FieldController {
     }
   }
 
-  // Lấy dữ liệu sân bóng dạng GeoJSON (cho bản đồ)
+  // Lấy dữ liệu sân bóng dạng GeoJSON
   async getFieldsGeoJSON(req, res) {
     try {
       const { search, lat, lng } = req.query;
-      const userLat = lat ? parseFloat(lat) : null;
-      const userLng = lng ? parseFloat(lng) : null;
 
       const fields = await this.fieldModel.getAllFields({
         search: search || "",
-        lat: userLat,
-        lng: userLng,
+        lat: lat ? parseFloat(lat) : null,
+        lng: lng ? parseFloat(lng) : null,
       });
 
-      const fieldsWithDistance = fields.map((field) => {
-        let distance = null;
-        if (userLat && userLng && field.latitude && field.longitude) {
-          const R = 6371;
-          const dLat = ((field.latitude - userLat) * Math.PI) / 180;
-          const dLng = ((field.longitude - userLng) * Math.PI) / 180;
-          const a =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos((userLat * Math.PI) / 180) *
-              Math.cos((field.latitude * Math.PI) / 180) *
-              Math.sin(dLng / 2) ** 2;
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          distance = R * c;
+      for (const field of fields) {
+        const subFields = await this.subFieldModel.getSubFieldsByFieldId(
+          field.id
+        );
+        field.subFields = subFields || [];
+      }
+
+      let userLat = lat ? parseFloat(lat) : null;
+      let userLng = lng ? parseFloat(lng) : null;
+      if (userLat && userLng) {
+        for (const f of fields) {
+          if (f.latitude && f.longitude) {
+            const R = 6371000;
+            const dLat = ((f.latitude - userLat) * Math.PI) / 180;
+            const dLng = ((f.longitude - userLng) * Math.PI) / 180;
+            const a =
+              Math.sin(dLat / 2) ** 2 +
+              Math.cos((userLat * Math.PI) / 180) *
+                Math.cos((f.latitude * Math.PI) / 180) *
+                Math.sin(dLng / 2) ** 2;
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            f.distance = Math.round(R * c);
+          } else {
+            f.distance = null;
+          }
         }
-        return { ...field, distance };
-      });
-
-      const sorted =
-        userLat && userLng
-          ? fieldsWithDistance.sort(
-              (a, b) => (a.distance || 0) - (b.distance || 0)
-            )
-          : fieldsWithDistance;
+        fields.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+      }
 
       const geoJSON = {
         type: "FeatureCollection",
-        features: sorted.map((field) => ({
+        features: fields.map((f) => ({
           type: "Feature",
           geometry: {
             type: "Point",
-            coordinates: [field.longitude, field.latitude],
+            coordinates: [f.longitude, f.latitude],
           },
           properties: {
-            id: field.id,
-            name: field.name,
-            address: field.address,
-            phone: field.phone,
-            open_time: field.open_time,
-            close_time: field.close_time,
-            images: field.images,
-            description: field.description,
-            price_per_hour: field.price_per_hour,
-            surface_type: field.surface_type,
-            distance: field.distance
-              ? field.distance.toFixed(2) + " km"
-              : "N/A",
+            id: f.id,
+            name: f.name,
+            address: f.address,
+            phone: f.phone,
+            open_time: f.open_time,
+            close_time: f.close_time,
+            surface_type: f.surface_type,
+            price_per_hour: f.price_per_hour,
+            images: f.images,
+            distance: f.distance,
+            subFields: f.subFields || [],
           },
         })),
       };
 
       res.json(geoJSON);
     } catch (err) {
-      console.error("Lỗi khi lấy dữ liệu sân bóng:", err.stack);
-      res.status(500).json({ error: "Lỗi máy chủ nội bộ: " + err.message });
+      console.error("Lỗi khi lấy danh sách sân bóng:", err);
+      res.status(500).json({ error: "Lỗi máy chủ nội bộ" });
     }
   }
 
-  // Lấy danh sách sân + sân con (cho trang quản trị)
+  // Lấy danh sách sân + sân con
   async getFieldsWithSubFields(req, res) {
     try {
       const { search, lat, lng } = req.query;
@@ -195,7 +196,6 @@ class FieldController {
         surface_type,
         owner_id,
       });
-
       res.status(201).json({ id: field.id });
     } catch (err) {
       console.error("Lỗi khi thêm sân bóng:", err);
@@ -311,7 +311,6 @@ class FieldController {
   // Hiển thị danh sách sân bóng cho ADMIN
   async renderAdminFieldsPage(req, res) {
     try {
-      // Lấy danh sách sân và tên chủ sân (nếu có)
       const query = `
         SELECT f.*, u.username AS owner_username
         FROM public.fields f

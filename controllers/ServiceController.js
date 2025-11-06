@@ -6,6 +6,33 @@ class ServiceController {
     this.serviceModel = new Service(pool);
   }
 
+  // Hiển thị danh sách dịch vụ của một sân bóng cụ thể
+  async renderFieldServices(req, res) {
+    try {
+      const fieldId = req.params.field_id;
+
+      // Lấy thông tin sân bóng
+      const fieldResult = await this.pool.query(
+        "SELECT * FROM public.fields WHERE id = $1",
+        [fieldId]
+      );
+      if (fieldResult.rows.length === 0)
+        return res.status(404).send("Không tìm thấy sân bóng này");
+
+      // Lấy danh sách dịch vụ thuộc sân đó
+      const services = await this.serviceModel.getServicesByFieldId(fieldId);
+
+      res.render("danhsach-dichvu", {
+        field: fieldResult.rows[0],
+        services,
+        session: req.session || {},
+      });
+    } catch (err) {
+      console.error("Lỗi khi hiển thị dịch vụ của sân:", err);
+      res.status(500).send("Lỗi server");
+    }
+  }
+
   // ========== ADMIN ==========
   async getAllServices(req, res) {
     try {

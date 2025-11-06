@@ -13,9 +13,9 @@ let userMarker = null;
 let routeControl = null;
 let drawnItems = new L.FeatureGroup();
 let circleLabel = null;
+let userLocation = null;
 map.addLayer(drawnItems);
 
-// Kiểm tra Leaflet.Draw
 if (L.Control.Draw) {
   const drawControl = new L.Control.Draw({
     draw: {
@@ -39,7 +39,6 @@ if (L.Control.Draw) {
   );
 }
 
-// Kiểm tra Leaflet Routing Machine
 if (!L.Routing) {
   console.error("Lỗi: Leaflet Routing Machine không tải được!");
   alert(
@@ -59,13 +58,31 @@ function formatTime(time) {
   return `${formattedHour}:${min.toString().padStart(2, "0")} ${period}`;
 }
 
-// Hàm chuyển loại mặt sân sang tiếng Việt
 function translateSurfaceType(type) {
   const t = (type || "").toString().toLowerCase();
   if (t === "artificial") return "Cỏ nhân tạo";
   if (t === "grass") return "Cỏ tự nhiên";
   if (t === "indoor") return "Sân trong nhà";
   return type || "Không xác định";
+}
+
+function formatPrice(value) {
+  if (!value || isNaN(value)) return "N/A";
+  return parseInt(value).toLocaleString("vi-VN").replace(/,/g, ".");
+}
+
+// --- Hàm tính khoảng cách giữa 2 tọa độ ---
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c);
 }
 
 map.on(L.Draw.Event.CREATED, (e) => {
@@ -118,7 +135,28 @@ function fetchSanbong(search = "", lat = null, lng = null) {
       return response.json();
     })
     .then((data) => {
-      console.log("Dữ liệu sân bóng:", data);
+      console.log("Dữ liệu sân bóng nhận được:", data);
+      if (
+        userLocation &&
+        data.type === "FeatureCollection" &&
+        Array.isArray(data.features)
+      ) {
+        data.features.forEach((f) => {
+          if (f.geometry && f.geometry.coordinates) {
+            const [lng, lat] = f.geometry.coordinates;
+            f.properties.distance = calculateDistance(
+              userLocation.lat,
+              userLocation.lng,
+              lat,
+              lng
+            );
+          }
+        });
+        data.features.sort(
+          (a, b) => a.properties.distance - b.properties.distance
+        );
+      }
+
       displaySanbongList(data);
       displaySanbongOnMap(data);
     })
@@ -128,12 +166,14 @@ function fetchSanbong(search = "", lat = null, lng = null) {
     });
 }
 
+//  Hàm hiển thị danh sách sân bóng trong bảng
 function displaySanbongList(data) {
   const stadiumList = document.getElementById("stadiumList");
   if (!stadiumList) {
     console.error("Không tìm thấy #stadiumList!");
     return;
   }
+
   stadiumList.innerHTML = "";
   let fields = [];
 
@@ -144,14 +184,22 @@ function displaySanbongList(data) {
     data.type === "FeatureCollection" &&
     Array.isArray(data.features)
   ) {
-    fields = data.features.map((feature) => feature.properties); 
+    fields = data.features.map((f) => f.properties);
   } else {
-    console.error("Dữ liệu không hợp lệ hoặc rỗng:", data);
-    fields = [];
+    console.error(" Dữ liệu không hợp lệ hoặc rỗng:", data);
+    stadiumList.innerHTML =
+      '<tr><td colspan="10" class="text-center">Không có dữ liệu sân bóng.</td></tr>';
+    return;
   }
 
   if (fields.length > 0) {
     fields.forEach((field) => {
+      let subFieldsHtml = "<span>Chưa có sân con</span>";
+      if (field.subFields && field.subFields.length > 0) {
+        subFieldsHtml = field.subFields
+          .map((sub) => `<span>${sub.name} (${sub.size})</span>`)
+          .join("<br>");
+      }
       const row = `
         <tr>
           <td>${field.name || "N/A"}</td>
@@ -160,35 +208,45 @@ function displaySanbongList(data) {
           <td>${formatTime(field.open_time)}</td>
           <td>${formatTime(field.close_time)}</td>
           <td>${translateSurfaceType(field.surface_type)}</td>
+          <td>${formatPrice(field.price_per_hour)}</td>
           <td>${
-            field.price_per_hour
-              ? field.price_per_hour.toLocaleString("vi-VN") + " VNĐ"
+            field.distance
+              ? field.distance.toLocaleString("vi-VN") + " m"
               : "N/A"
           }</td>
+
+          <td>${subFieldsHtml}</td>
+
           <td>
+            <div class="action-buttons">
             <a href="/xem_dichvu/${
               field.id || ""
             }" class="btn btn-primary btn-sm">Xem dịch vụ</a>
+            <a href="/dat-san?field_id=${
+              field.id || ""
+            }" class="btn btn-success btn-sm">Đặt sân</a>
             ${
               sessionStorage.getItem("role") === "admin"
                 ? `
-              <a href="/sua_sanbong/${
-                field.id || ""
-              }" class="btn btn-warning btn-sm">Sửa</a>
-              <button class="btn btn-danger btn-sm" onclick="window.deleteSanbong(${
-                field.id || ""
-              })">Xóa</button>
-            `
+                  <a href="/sua_sanbong/${
+                    field.id || ""
+                  }" class="btn btn-warning btn-sm">Sửa</a>
+                  <button class="btn btn-danger btn-sm" onclick="window.deleteSanbong(${
+                    field.id || ""
+                  })">Xóa</button>
+                `
                 : ""
             }
+            </div>
           </td>
         </tr>
       `;
+
       stadiumList.innerHTML += row;
     });
   } else {
     stadiumList.innerHTML =
-      '<tr><td colspan="8" class="text-center">Chưa có dữ liệu</td></tr>';
+      '<tr><td colspan="10" class="text-center">Chưa có dữ liệu sân bóng.</td></tr>';
   }
 }
 
@@ -202,15 +260,16 @@ function displaySanbongOnMap(geoJSON) {
     return;
   }
   geoJsonLayer = L.geoJSON(geoJSON, {
-    pointToLayer: (feature, latlng) =>
-      L.circleMarker(latlng, {
-        radius: 8,
-        fillColor: "#00FF00",
-        color: "#000",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8,
-      }),
+    pointToLayer: (feature, latlng) => {
+      const icon = L.divIcon({
+        html: "⚽️",
+        className: "custom-football-icon",
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      });
+      return L.marker(latlng, { icon });
+    },
+
     onEachFeature: (feature, layer) => {
       const props = feature.properties || {};
       const coords = feature.geometry.coordinates;
@@ -239,8 +298,13 @@ function displaySanbongOnMap(geoJSON) {
           )} - ${formatTime(props.close_time)}</p>
           <p class="popup-price"><i class="fa fa-money-bill"></i> ${
             props.price_per_hour
-              ? props.price_per_hour.toLocaleString("vi-VN") + " VNĐ"
+              ? formatPrice(props.price_per_hour)
               : "Chưa có giá"
+          }</p>
+          <p class="popup-surface"><i class='fa fa-ruler'></i> ${
+            props.distance
+              ? props.distance.toLocaleString("vi-VN") + " m"
+              : "N/A"
           }</p>
           <p class="popup-surface"><i class="fa fa-layer-group"></i> ${translateSurfaceType(
             props.surface_type
@@ -392,17 +456,19 @@ if (nearbyButton) {
 
 function startTracking() {
   if (!navigator.geolocation) {
-    console.error("Trình duyệt không hỗ trợ geolocation.");
+    alert("Trình duyệt không hỗ trợ định vị.");
     return;
   }
+
   navigator.geolocation.watchPosition(
-    (position) => {
-      const userLat = position.coords.latitude;
-      const userLng = position.coords.longitude;
-      console.log(`Cập nhật vị trí người dùng: ${userLat}, ${userLng}`);
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      userLocation = { lat: latitude, lng: longitude };
+      console.log(` Cập nhật vị trí người dùng: ${latitude}, ${longitude}`);
+
       if (!userMarker) {
-        userMarker = L.circleMarker([userLat, userLng], {
-          radius: 8,
+        userMarker = L.circleMarker([latitude, longitude], {
+          radius: 7,
           fillColor: "#00BFFF",
           color: "#000",
           weight: 1,
@@ -412,13 +478,19 @@ function startTracking() {
           .addTo(map)
           .bindPopup("Vị trí của bạn");
       } else {
-        userMarker.setLatLng([userLat, userLng]);
+        userMarker.setLatLng([latitude, longitude]);
+      }
+
+      const listDiv = document.getElementById("stadium-list");
+      if (listDiv && listDiv.style.display === "block") {
+        console.log(
+          "Đang ở chế độ danh sách → tự động sắp xếp lại theo vị trí mới"
+        );
+        fetchSanbong();
       }
     },
-    (err) => {
-      console.error("Lỗi theo dõi vị trí:", err);
-      alert("Không thể truy cập vị trí của bạn.");
-    }
+    (err) => console.error("Lỗi theo dõi vị trí:", err),
+    { enableHighAccuracy: true }
   );
 }
 startTracking();
@@ -529,7 +601,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const mapDiv = document.getElementById("map");
   const listDiv = document.getElementById("stadium-list");
 
-  let showingMap = true; // mặc định hiển thị map
+  let showingMap = true;
 
   toggleBtn.addEventListener("click", () => {
     if (showingMap) {
@@ -537,6 +609,8 @@ document.addEventListener("DOMContentLoaded", () => {
       mapDiv.style.display = "none";
       listDiv.style.display = "block";
       toggleBtn.textContent = "Xem bản đồ";
+      console.log("Chuyển sang danh sách → tự động sắp xếp theo khoảng cách");
+      fetchSanbong();
     } else {
       // Ẩn danh sách, hiện map
       mapDiv.style.display = "block";
@@ -552,7 +626,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Tải dữ liệu sân bóng ban đầu
 document.addEventListener("DOMContentLoaded", () => {
   fetchSanbong();
 });

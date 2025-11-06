@@ -1,9 +1,6 @@
-// Lấy role hiện tại (từ server truyền qua EJS)
 function getCurrentRole() {
   return window.currentRole || "guest";
 }
-
-// Điều hướng sau khi thêm/sửa/xóa dịch vụ
 function redirectAfterSave() {
   const role = getCurrentRole();
   if (role === "owner") {
@@ -13,7 +10,6 @@ function redirectAfterSave() {
   }
 }
 
-// Hiển thị thông báo đơn giản
 function notify(msg, type = "info") {
   switch (type) {
     case "success":
@@ -40,7 +36,7 @@ function deleteService(serviceId) {
   fetch(url, { method: "DELETE" })
     .then(async (response) => {
       if (response.ok) {
-        notify("Xóa dịch vụ thành công!", "success");
+        notify("Xóa dịch vụ thành công!");
         redirectAfterSave();
       } else {
         const err = await response.text();
@@ -79,7 +75,7 @@ if (editForm) {
       });
 
       if (response.ok) {
-        notify("Cập nhật dịch vụ thành công!", "success");
+        notify("Cập nhật dịch vụ thành công!");
         redirectAfterSave();
       } else {
         const err = await response.text();
@@ -122,7 +118,7 @@ if (addForm) {
       });
 
       if (response.ok) {
-        notify("Thêm dịch vụ thành công!", "success");
+        notify("Thêm dịch vụ thành công!");
         redirectAfterSave();
       } else {
         const err = await response.text();

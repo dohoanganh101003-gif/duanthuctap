@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống Kê Sân Bóng</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/thongKe.css">
+    <link rel="stylesheet" href="/trangchu.css">
+
+
+</head>
+
+<body>
+    <header class="main-header shadow-sm">
+        <nav class="navbar navbar-dark bg-primary py-3 d-flex align-items-center justify-content-between">
+            <button class="btn btn-outline-light btn-sm" id="sidebarToggle">
+                ☰
+            </button>
+
+            <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
+
+            <ul class="navbar-nav ml-auto flex-row">
+                <% if (session && session.user_id) { %>
+                    <li class="nav-item ml-3">
+                        <a class="nav-link text-white" href="/dangxuat">Đăng xuất</a>
+                    </li>
+                    <% } else { %>
+                        <li class="nav-item ml-3">
+                            <a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
+                        </li>
+                        <li class="nav-item ml-3">
+                            <a class="nav-link text-white" href="/dangky">Đăng ký</a>
+                        </li>
+                        <% } %>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" id="closeSidebar">×</button>
+        <ul class="sidebar-menu list-unstyled mt-4">
+            <% if (session && session.role==='admin' ) { %>
+                <li><a href="/">Trang chủ</a></li>
+                <li><a href="/lichsu_datsan">Lịch sử đặt sân</a></li>
+                <li><a href="/danhsach_sanbong">Quản lý sân bóng</a></li>
+                <li><a href="/danhsach-dichvu">Quản lý dịch vụ</a></li>
+                <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                <li><a href="/admin/users"> Quản lý người dùng</a></li>
+                <li><a href="/thongke" class="active">Thống kê</a></li>
+                <% } else if (session && session.role==='owner' ) { %>
+                    <li><a href="/owner/chusan_datsan">Quản lý đặt sân</a></li>
+                    <li><a href="/owner/chusan_sanbong">Quản lý sân bóng</a></li>
+                    <li><a href="/owner/chusan_dichvu">Dịch vụ của tôi</a></li>
+                    <li><a href="/thongke" class="active">Thống kê</a></li>
+                    <% } %>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h2>Trang thống kê đặt sân</h2>
+
+        <div class="row justify-content-center align-items-stretch">
+            <div class="col-md-4 d-flex justify-content-center">
+                <div class="chart-box">
+                    <canvas id="chartWeek"></canvas>
+                    <div id="revenueWeek" class="revenue-box"></div>
+                </div>
+            </div>
+
+            <div class="col-md-4 d-flex justify-content-center">
+                <div class="chart-box">
+                    <canvas id="chartMonth"></canvas>
+                    <div id="revenueMonth" class="revenue-box"></div>
+                </div>
+            </div>
+
+            <div class="col-md-4 d-flex justify-content-center">
+                <div class="chart-box">
+                    <canvas id="chartYear"></canvas>
+                    <div id="revenueYear" class="revenue-box"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="/scripts/tHongKe.js" defer></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/scripts/sidebar.js" defer></script>
+</body>
+
+</html>

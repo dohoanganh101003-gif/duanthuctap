@@ -4,79 +4,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Sân Bóng</title>
+    <title>Trang chủ</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
-    <link rel="stylesheet" href="/trangchu.css">
+    <link rel="stylesheet" href="/trangchu.css" />
+    <link rel="stylesheet" href="/bang.css" />
+
 </head>
 
 <body>
     <% function translateSurface(type) { const t=(type || "" ).toString().toLowerCase(); if (t==="artificial" )
         return "Cỏ nhân tạo" ; if (t==="grass" ) return "Cỏ tự nhiên" ; if (t==="indoor" ) return "Sân trong nhà" ;
         return "Chưa có dữ liệu" ; } %>
+
         <header class="main-header shadow-sm">
             <nav class="navbar navbar-dark bg-primary">
                 <button class="btn btn-outline-light btn-sm" id="sidebarToggle">☰</button>
-
                 <a class="navbar-brand fw-bold text-white ml-2" href="/">Quản Lý Sân Bóng</a>
-
                 <div class="search-container">
-                    <div class="input-group">
-                        <input type="text" id="search-input" class="form-control" placeholder="Nhập tên sân bóng...">
-                        <div class="input-group-append">
-                            <button id="search-button" class="btn btn-primary">Tìm kiếm</button>
-                            <button id="nearby-button" class="btn btn-primary">Gần tôi</button>
-                            <button id="toggle-view" class="btn toggle-btn">Xem danh sách</button>
-                        </div>
+                    <div class="search-group">
+                        <input type="text" id="search-input" placeholder="Tìm kiếm sân bóng...">
+                        <button id="search-button">Tìm kiếm</button>
+                    </div>
+                    <div class="extra-buttons">
+                        <button id="nearby-button" class="btn btn-primary">Gần tôi</button>
+                        <button id="toggle-view" class="btn toggle-btn">Xem danh sách</button>
                     </div>
                     <div id="search-history"></div>
                 </div>
-
                 <ul class="navbar-nav ml-auto flex-row">
                     <% if (session && session.user_id) { %>
-                        <li class="nav-item ml-3">
-                            <a class="nav-link text-white" href="/dangxuat">Đăng xuất</a>
-                        </li>
+                        <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangxuat">Đăng xuất</a></li>
                         <% } else { %>
-                            <li class="nav-item ml-3">
-                                <a class="nav-link text-white" href="/dangnhap">Đăng nhập</a>
-                            </li>
-                            <li class="nav-item ml-3">
-                                <a class="nav-link text-white" href="/dangky">Đăng ký</a>
-                            </li>
+                            <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangnhap">Đăng nhập</a></li>
+                            <li class="nav-item ml-3"><a class="nav-link text-white" href="/dangky">Đăng ký</a></li>
                             <% } %>
                 </ul>
             </nav>
         </header>
 
-
         <div id="sidebar" class="sidebar">
             <button class="close-btn" id="closeSidebar">×</button>
             <ul class="sidebar-menu list-unstyled mt-4">
-
                 <li><a href="/" class="active">Trang chủ</a></li>
                 <li><a href="/lichsu_datsan">Lịch sử đặt sân</a></li>
-
                 <% if (session && session.role==='admin' ) { %>
                     <li><a href="/danhsach_sanbong">Quản lý sân bóng</a></li>
                     <li><a href="/danhsach-dichvu">Quản lý dịch vụ</a></li>
                     <li><a href="/quanly_datsan">Quản lý đặt sân</a></li>
+                    <li><a href="/admin/users"> Quản lý người dùng</a></li>
+                    <li><a href="/thongke"> Thống kê</a></li>
                     <% } %>
-
             </ul>
         </div>
 
-
         <div id="map"></div>
-
 
         <div id="stadium-list" style="display:none;">
             <h2>Danh sách sân bóng</h2>
             <div class="table-container">
-                <table class="table table-striped">
+                <table class="table table-striped table-home">
                     <thead>
                         <tr>
                             <th>Tên sân</th>
@@ -86,15 +76,14 @@
                             <th>Giờ đóng cửa</th>
                             <th>Loại sân</th>
                             <th>Giá tiền</th>
+                            <th>Khoảng cách (m)</th>
                             <th>Sân con</th>
                             <th>Hành động</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="stadiumList">
                         <% fields.forEach(field=> {
-                            const subs = (field.subFields && field.subFields.length > 0)
-                            ? field.subFields
-                            : [null];
+                            const subs = (field.subFields && field.subFields.length > 0) ? field.subFields : [null];
                             %>
                             <% subs.forEach(sub=> { %>
                                 <tr>
@@ -120,6 +109,9 @@
                                         <%= field.price_per_hour || "Chưa có dữ liệu" %>
                                     </td>
                                     <td>
+                                        <%= field.distance ? field.distance.toLocaleString("vi-VN") + " m" : "N/A" %>
+                                    </td>
+                                    <td>
                                         <% if (sub) { %>
                                             <span>
                                                 <%= sub.name %> (<%= sub.size %>)
@@ -131,11 +123,9 @@
                                     <td>
                                         <div class="action-buttons">
                                             <a href="/xem_dichvu/<%= field.id %>" class="btn btn-primary btn-sm">Xem
-                                                dịch
-                                                vụ</a>
+                                                dịch vụ</a>
                                             <a href="/dat-san?field_id=<%= field.id %>"
-                                                class="btn btn-success btn-sm">Đặt
-                                                sân</a>
+                                                class="btn btn-success btn-sm">Đặt sân</a>
                                             <% if (session.role==='admin' ) { %>
                                                 <a href="/sua_sanbong/<%= field.id %>"
                                                     class="btn btn-warning btn-sm">Sửa</a>
@@ -152,7 +142,6 @@
             </div>
         </div>
 
-
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -162,11 +151,10 @@
         <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
         <script>
             window.currentRole = "<%= session.role %>";
+            sessionStorage.setItem("role", window.currentRole); 
         </script>
-
         <script src="/scripts/map.js" defer></script>
         <script src="/scripts/sidebar.js" defer></script>
-
 </body>
 
 </html>

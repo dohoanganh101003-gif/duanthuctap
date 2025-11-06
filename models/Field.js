@@ -3,7 +3,7 @@ class Field {
     this.pool = pool;
   }
 
-  // Lấy tất cả sân (cho admin hoặc tìm kiếm)
+  // Lấy tất cả sân
   async getAllFields({ search, lat, lng, radius = 10000 } = {}) {
     try {
       let query = `
@@ -112,15 +112,16 @@ class Field {
       description,
       price_per_hour,
       surface_type,
+      qr_image,
     } = data;
 
     const result = await this.pool.query(
       `UPDATE public.fields
-       SET name=$1, address=$2, phone=$3, latitude=$4, longitude=$5,
-           open_time=$6, close_time=$7, images=$8, description=$9,
-           price_per_hour=$10, surface_type=$11
-       WHERE id=$12
-       RETURNING *`,
+     SET name=$1, address=$2, phone=$3, latitude=$4, longitude=$5,
+         open_time=$6, close_time=$7, images=$8, description=$9,
+         price_per_hour=$10, surface_type=$11, qr_image=$12
+     WHERE id=$13
+     RETURNING *`,
       [
         name,
         address,
@@ -133,9 +134,11 @@ class Field {
         description,
         price_per_hour,
         surface_type,
+        qr_image,
         id,
       ]
     );
+
     return result.rows[0];
   }
 

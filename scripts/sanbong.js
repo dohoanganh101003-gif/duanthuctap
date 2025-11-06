@@ -139,10 +139,9 @@ if (editForm) {
       return;
     }
     const id = idInput.value;
-    // Tạo FormData (bao gồm file ảnh nếu có)
     const formData = new FormData(editForm);
     try {
-      console.log("🔄 Gửi request PUT tới:", `/api/sanbong/${id}`);
+      console.log("Gửi request PUT tới:", `/api/sanbong/${id}`);
       const response = await fetch(`/api/sanbong/${id}`, {
         method: "PUT",
         headers: {
@@ -169,8 +168,6 @@ if (editForm) {
 }
 
 // ================= QUẢN LÝ SÂN CON =================
-
-// Lấy id sân chính (field_id)
 const fieldIdInput =
   document.querySelector('input[name="sanbong_id"]') ||
   document.querySelector('input[name="field_id"]');

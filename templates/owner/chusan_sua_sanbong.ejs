@@ -52,6 +52,8 @@
             <li><a href="/owner/chusan_datsan">Quản lý đặt sân</a></li>
             <li><a href="/owner/chusan_sanbong">Quản lý sân bóng</a></li>
             <li><a href="/owner/chusan_dichvu">Dịch vụ của tôi</a></li>
+            <li><a href="/thongke"> Thống kê</a></li>
+
         </ul>
     </div>
 
@@ -119,6 +121,18 @@
                 <label>Upload ảnh mới (tối đa 5 ảnh)</label>
                 <input type="file" class="form-control" id="editImagesField" name="images" multiple>
                 <div id="previewEdit" class="mt-2 d-flex flex-wrap"></div>
+            </div>
+
+            <div class="form-group mt-4">
+                <label>Ảnh QR hiện tại:</label><br>
+                <% if (field.qr_image) { %>
+                    <img src="<%= field.qr_image %>" alt="Mã QR" class="thumb mb-2">
+                    <% } else { %>
+                        <span class="text-muted">Chưa có ảnh QR</span>
+                        <% } %>
+
+                            <label>Thay mã QR mới:</label>
+                            <input type="file" class="form-control" name="qr_image" accept="image/*">
             </div>
 
 
