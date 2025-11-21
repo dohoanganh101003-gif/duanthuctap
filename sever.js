@@ -66,7 +66,7 @@ pool.connect((err) => {
     console.error("Database connection error:", err.stack);
     process.exit(1);
   }
-  console.log("Em chào đại ca Hoàng Anh");
+  console.log("Chào mừng thầy cô đến với hệ thống quản lý sân bóng!");
   app.locals.pool = pool;
 });
 

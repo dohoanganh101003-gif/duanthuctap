@@ -421,7 +421,6 @@ if (nearbyButton) {
                   fillOpacity: 0.8,
                 })
                   .addTo(map)
-                  .bindPopup("Vị trí của bạn")
                   .openPopup();
                 map.setView([userLat, userLng], 13);
               } else {
@@ -605,14 +604,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   toggleBtn.addEventListener("click", () => {
     if (showingMap) {
-      // Ẩn map, hiện danh sách
       mapDiv.style.display = "none";
       listDiv.style.display = "block";
       toggleBtn.textContent = "Xem bản đồ";
       console.log("Chuyển sang danh sách → tự động sắp xếp theo khoảng cách");
       fetchSanbong();
     } else {
-      // Ẩn danh sách, hiện map
       mapDiv.style.display = "block";
       listDiv.style.display = "none";
       toggleBtn.textContent = "Xem danh sách";

@@ -67,7 +67,6 @@ class AdminUserController {
     }
   }
 
-  // ======= ĐỔI ROLE NGƯỜI DÙNG =======
   async changeRole(req, res) {
     const { id } = req.params;
     const { newRole } = req.body;

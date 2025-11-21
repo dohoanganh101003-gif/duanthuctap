@@ -52,8 +52,8 @@
                             <th>Sân</th>
                             <th>Sân con</th>
                             <th>Thời gian</th>
-                            <th>Trạng thái</th>
                             <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
                             <th>Thanh toán</th>
                         </tr>
                     </thead>
@@ -73,11 +73,12 @@
                                     <%= new Date(b.start_time).toLocaleString('vi-VN') %> - <%= new
                                             Date(b.end_time).toLocaleString('vi-VN') %>
                                 </td>
-                                <td class="status-<%= b.status %>">
-                                    <%= b.status %>
-                                </td>
+
                                 <td>
                                     <%= Math.ceil(b.total_price).toLocaleString('vi-VN') %> VNĐ
+                                </td>
+                                <td class="status-<%= b.status %>">
+                                    <%= b.status %>
                                 </td>
 
                                 <td>
