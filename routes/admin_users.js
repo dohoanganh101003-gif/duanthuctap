@@ -46,4 +46,18 @@ router.post("/:id/delete", isAdmin, async (req, res) => {
   controller.deleteUser(req, res);
 });
 
+// Hiển thị form tạo
+router.get("/create", isAdmin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const controller = new AdminUserController(pool);
+  controller.showCreateForm(req, res);
+});
+
+// Xử lý tạo mới
+router.post("/create", isAdmin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const controller = new AdminUserController(pool);
+  controller.createUser(req, res);
+});
+
 module.exports = router;

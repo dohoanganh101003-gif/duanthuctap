@@ -115,6 +115,51 @@ class AdminUserController {
       res.status(500).send("Lỗi khi xóa người dùng");
     }
   }
+  // ======= HIỂN THỊ FORM TẠO NGƯỜI DÙNG =======
+  async showCreateForm(req, res) {
+    try {
+      res.render("admin_user_create", {
+        session: req.session || {},
+      });
+    } catch (err) {
+      console.error("Lỗi khi hiển thị form tạo người dùng:", err);
+      res.status(500).send("Lỗi khi tải form tạo người dùng");
+    }
+  }
+
+  // ======= TẠO NGƯỜI DÙNG =======
+  async createUser(req, res) {
+    const { username, email, phone, password, role } = req.body;
+
+    // cơ bản validate nhỏ
+    if (!username || !email || !password) {
+      return res.status(400).send("Vui lòng nhập username, email và password.");
+    }
+
+    try {
+      // kiểm tra email hoặc username đã tồn tại (nên có)
+      const existing = await this.pool.query(
+        "SELECT id FROM public.users WHERE email=$1 OR username=$2",
+        [email, username]
+      );
+      if (existing.rows.length > 0) {
+        return res.status(400).send("Username hoặc email đã tồn tại.");
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await this.pool.query(
+        `INSERT INTO public.users (username, email, phone, password, role, status, created_at) 
+       VALUES ($1, $2, $3, $4, $5, 'active', NOW())`,
+        [username, email, phone || null, hashedPassword, role || "user"]
+      );
+
+      res.redirect("/admin/users");
+    } catch (err) {
+      console.error("Lỗi khi tạo người dùng:", err);
+      res.status(500).send("Lỗi khi tạo người dùng");
+    }
+  }
 }
 
 module.exports = AdminUserController;
