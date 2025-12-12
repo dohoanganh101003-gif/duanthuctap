@@ -488,7 +488,7 @@ function startTracking() {
         fetchSanbong();
       }
     },
-    (err) => console.error("Lỗi theo dõi vị trí:", err),
+    (err) => console.error("Lỗi theo dõi vị trí: ", err),
     { enableHighAccuracy: true }
   );
 }
